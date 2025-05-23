@@ -1,0 +1,8 @@
+# Ignore build outputs
+/build/
+/dist/
+/output/
+/logs/
+/tmp/
+/example/
+/__pycache__/
