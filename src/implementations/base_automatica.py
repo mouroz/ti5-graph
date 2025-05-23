@@ -17,48 +17,53 @@ from src.entries import *
 
 
 intervals = [
-    #Interval.from_range_string("1:21 - 3:02"),
-    Interval.from_range_string("3:29 - 5:01"),
-    #Interval.from_range_string("6:29 - 7:01"), INVALIDO
-    Interval.from_range_string("7:33 - 9:05"),
-    Interval.from_range_string("9:40 - 11:12"),
-    Interval.from_range_string("11:58 - 13:30")
+    #Interval.from_range_string("1:23 - 3:05"),
+    Interval.from_range_string("3:35 - 5:07"),
+    Interval.from_range_string("5:50 - 7:22"), 
+    Interval.from_range_string("8:00 - 9:32"),
+    Interval.from_range_string("9:56 - 11:28"),
+    Interval.from_range_string("12:02 - 13:34")
 ]
 
 
-class SemBase:
-    input_csv_path = 'data/sem_base.csv'
+
+
+
+
+
+class BaseAutomatica:
+    input_csv_path = 'data/base_automatica.csv'
     image_path = 'example/output.png'
-    output_prefix = 'data/sem_base/test'
+    output_prefix = 'data/base_automatica/test'
     
     _frames:list[pd.DataFrame] | None = None
     
     @staticmethod
     def get_frames():
-        if SemBase._frames is None:
-            SemBase._frames = get_cases_from_csv(
-                input_csv=SemBase.input_csv_path, 
-                output_prefix=SemBase.output_prefix, 
+        if BaseAutomatica._frames is None:
+            BaseAutomatica._frames = get_cases_from_csv(
+                input_csv=BaseAutomatica.input_csv_path, 
+                output_prefix=BaseAutomatica.output_prefix, 
                 intervals=intervals, 
                 save_as_csv=True
             )
         
-        return SemBase._frames
+        return BaseAutomatica._frames
     
     @staticmethod
     def get_series_mean(col: Col) -> pd.Series:
-        return mean_of_dataframe_list(SemBase.get_frames())
+        return mean_of_dataframe_list(BaseAutomatica.get_frames())
     
     
 
     @staticmethod
     def plot_cpu_percentage():
-        frames = SemBase.get_frames()
+        frames = BaseAutomatica.get_frames()
         plot_all_cases(
             frames=frames, 
             col=Col.CPU_PERCENTAGE,
-            labels=['caso 1', 'caso 2', 'caso 3', 'caso 4'],
-            output=SemBase.output_prefix,
+            labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
+            output=BaseAutomatica.output_prefix,
             x_label='Segundos',
             y_label='Cpu %',
             title='Cpu % por segundo'
@@ -66,7 +71,7 @@ class SemBase:
         
     
 if __name__ == '__main__':  
-    SemBase.plot_cpu_percentage()
+    BaseAutomatica.plot_cpu_percentage()
 
     
 

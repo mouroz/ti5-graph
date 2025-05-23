@@ -26,47 +26,49 @@ intervals = [
 ]
 
 
-class SemBase:
-    input_csv_path = 'data/sem_base.csv'
+class Manual:
+    input_csv_path = 'data/base_manual.csv'
     image_path = 'example/output.png'
-    output_prefix = 'data/sem_base/test'
+    output_prefix = 'data/base_manual/test'
     
     _frames:list[pd.DataFrame] | None = None
     
+
     @staticmethod
-    def get_frames():
-        if SemBase._frames is None:
-            SemBase._frames = get_cases_from_csv(
-                input_csv=SemBase.input_csv_path, 
-                output_prefix=SemBase.output_prefix, 
+    def get_frames() -> list[pd.DataFrame]:
+        if Manual._frames is None:
+            Manual._frames = get_cases_from_csv(
+                input_csv=Manual.input_csv_path, 
+                output_prefix=Manual.output_prefix, 
                 intervals=intervals, 
                 save_as_csv=True
             )
         
-        return SemBase._frames
+        return Manual._frames
     
     @staticmethod
     def get_series_mean(col: Col) -> pd.Series:
-        return mean_of_dataframe_list(SemBase.get_frames())
-    
+        return mean_of_dataframe_list(Manual.get_frames())
     
 
     @staticmethod
     def plot_cpu_percentage():
-        frames = SemBase.get_frames()
+        frames = Manual.get_frames()
         plot_all_cases(
             frames=frames, 
             col=Col.CPU_PERCENTAGE,
-            labels=['caso 1', 'caso 2', 'caso 3', 'caso 4'],
-            output=SemBase.output_prefix,
+            labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
+            output=Manual.output_prefix,
             x_label='Segundos',
             y_label='Cpu %',
             title='Cpu % por segundo'
         )
         
+
+
     
 if __name__ == '__main__':  
-    SemBase.plot_cpu_percentage()
+    Manual.plot_cpu_percentage()
 
     
 

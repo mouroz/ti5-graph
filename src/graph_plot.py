@@ -75,3 +75,31 @@ def plot_std(
     
     
 
+#-------------------------------------------------------------
+
+
+def plot_all_cases(
+    frames: list[pd.DataFrame], 
+    col: Col, 
+    labels:list[str], 
+    output:str, 
+    x_label:str, 
+    y_label:str, 
+    title:str
+):
+    y_series:list[pd.Series] = []
+    for frame in frames:
+        y_series.append(frame[col.standard])
+    
+    
+    x_series = pd.Series(range(len(y_series[0])))
+    plot_multiple_std(
+        x_series=x_series, 
+        y_series_list=y_series, 
+        labels=labels, 
+        output=output, 
+        x_label=x_label, 
+        y_label=y_label, 
+        title=title
+    )
+        

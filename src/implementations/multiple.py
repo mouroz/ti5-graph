@@ -10,7 +10,6 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
-from src.entry_interval import *
 from src.graph_plot import *
 from src.entries import *
 from src.implementations.sem_base import *

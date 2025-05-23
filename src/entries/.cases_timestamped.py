@@ -2,36 +2,32 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-from columns import *
-from src.entry_interval import *
+from src.columns import *
 from src.graph_plot import *
+from src.entries.reader import *
 
 
-def read_csv(file_path: str) -> pd.DataFrame:
-    """
-    Reads a CSV with predefined dtypes and datetime parsing.
-    Modify `dtype_map` and `parse_dates` as per your CSV structure.
-    """
+# DEPRECIATED
+class IntervalWithDatetime:
+    def __init__(self, start: datetime, end: datetime):
+        if start > end:
+            raise ValueError("Start time must be before end time.")
+        self.start = start
+        self.end = end
 
-    df = pd.read_csv(file_path, usecols=Col.original_names())
-    df = df.rename(columns=Col.rename_map())
-    
-    return df
+    def __repr__(self):
+        return f"Interval(start={self.start}, end={self.end})"
 
-
-
-def convert_to_datetime(time_obj):
-    return datetime.combine(datetime.today(), time_obj)
-
-
-def manipulate_whole_df(df: pd.DataFrame):
-    df[Col.TIMESTAMP.standard] = df[Col.TIMESTAMP.standard].apply(lambda x: datetime.strptime(x, "%H:%M:%S.%f").time())
-    df[Col.TIMESTAMP.standard] = df[Col.TIMESTAMP.standard].apply(convert_to_datetime)
+# Function to convert string such as "15:48:15" into full timestamp
+# The y/m/d are hard to predict, hence this is not a recommended approach
+# Used to generate expected datetimes from strings
+def t(s):
+    return pd.to_datetime(f"2025-05-23 {s}", format="%Y-%m-%d %H:%M:%S")
 
 
-    
 
-def split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[pd.DataFrame]:
+# DEPRECIATED
+def split_df_by_intervals(df: pd.DataFrame, intervals: list[IntervalWithDatetime]) -> list[pd.DataFrame]:
     """
     Splits the dataframe into parts based on a list of Interval(start, end).
     Throws ValueError if there are rows in df[time_col] not covered by any interval.
@@ -54,7 +50,6 @@ def split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[p
         chunks.append(chunk)
 
     # Check if all rows are covered
-    
     row_counts = [chunk.shape[0] for chunk in chunks]
     if len(set(row_counts)) != 1:
         for i, count in enumerate(row_counts):
@@ -65,20 +60,8 @@ def split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[p
 
 
 
-# def time_to_seconds(df: pd.DateFrame):
-#     # Set the first time as the reference
-#     start_time = df[Col.TIMESTAMP.standard].iloc[0]
-    
-#     # Interval 
-#     df[Col.TIMESTAMP.standard] = df[Col.TIMESTAMP.standard].apply(
-#         lambda dt: int((dt - start_time).total_seconds())
-#     )
-    
-
-
-def get_cases_from_csv(input_csv: str, output_prefix: str, intervals: list[str], save_as_csv: bool) -> list[pd.DataFrame]:
-
-
+# DEPRECIATED
+def get_cases_from_csv(input_csv: str, output_prefix: str, intervals: list[IntervalWithDatetime], save_as_csv: bool) -> list[pd.DataFrame]:
     df = read_csv(input_csv)
     manipulate_whole_df(df)
     
@@ -87,7 +70,7 @@ def get_cases_from_csv(input_csv: str, output_prefix: str, intervals: list[str],
     updated:list[pd.DataFrame] = []
     for i, chunk in enumerate(results):
         output_path = f"{output_prefix}{i+1}.csv"
-        chunk = chunk.drop(columns=[Col.TIMESTAMP.standard])
+        chunk = manipulate_cases_df(chunk)
         
         if (save_as_csv):
             chunk.to_csv(output_path, index=False)
@@ -97,10 +80,4 @@ def get_cases_from_csv(input_csv: str, output_prefix: str, intervals: list[str],
         
     return updated
 
-        
-    
-    
-    
-    
-    
-    
+
