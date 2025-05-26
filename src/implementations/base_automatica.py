@@ -10,10 +10,9 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
-from src.entries.cases import *
+from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
-
 
 
 intervals = [
@@ -24,10 +23,6 @@ intervals = [
     Interval.from_range_string("9:56 - 11:28"),
     Interval.from_range_string("12:02 - 13:34")
 ]
-
-
-
-
 
 
 

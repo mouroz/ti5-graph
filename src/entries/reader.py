@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 from columns import *
+import chardet
 
 def custom_time_parser(time_str):
     print(f'str: {time_str}')
@@ -14,9 +15,18 @@ def read_csv(file_path: str) -> pd.DataFrame:
     Modify `dtype_map` and `parse_dates` as per your CSV structure.
     """
 
-    df = pd.read_csv(file_path, usecols=Col.original_names())
+    # Detect proper charset
+    # with open(file_path, 'rb') as f:
+    #     result = chardet.detect(f.read())
+    #     print(result)
+
+    df = pd.read_csv(file_path, usecols=Col.original_names(), index_col=False)
     df = df.rename(columns=Col.rename_map())
-    print(df[Col.TIMESTAMP.standard])
+        
+    # Debug info
+    # print(df.head())
+    # print(df.columns)
+    # print(df.info())
     
     return df
 

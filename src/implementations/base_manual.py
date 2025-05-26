@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
-from src.entries.cases import *
+from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
 
@@ -70,9 +70,6 @@ class Manual:
 if __name__ == '__main__':  
     Manual.plot_cpu_percentage()
 
-    
-
-    
     
     
     

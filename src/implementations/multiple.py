@@ -1,7 +1,10 @@
 import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from datetime import datetime
+from src.implementations.sem_base import *
+
 
 import sys
 import os
@@ -16,9 +19,9 @@ from src.implementations.sem_base import *
 
 
     
-if __name__ == '__main__':  
-    frames = get_sem_base_cases()
-    y_series:list[pd.Series] = []
+if __name__ == '__main__':
+    frames = SemBase.plot_cpu_percentage()
+    
     
 
     

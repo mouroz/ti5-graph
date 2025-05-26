@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
-from src.entries.cases import *
+from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
 
@@ -27,14 +27,14 @@ intervals = [
 
 
 class SemBase:
-    input_csv_path = 'data/sem_base.csv'
+    input_csv_path = 'data/sem_base_2.csv'
     image_path = 'example/output.png'
     output_prefix = 'data/sem_base/test'
     
     _frames:list[pd.DataFrame] | None = None
     
     @staticmethod
-    def get_frames():
+    def get_frames() -> list[pd.DataFrame]:
         if SemBase._frames is None:
             SemBase._frames = get_cases_from_csv(
                 input_csv=SemBase.input_csv_path, 
