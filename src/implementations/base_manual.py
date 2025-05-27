@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
 from src.entries.csv_split import *
-from src.graph_plot import *
+from src.graph.simple_plot import *
 from src.entries import *
 
 
@@ -54,14 +54,19 @@ class Manual:
     @staticmethod
     def plot_cpu_percentage():
         frames = Manual.get_frames()
-        plot_all_cases(
-            frames=frames, 
-            col=Col.CPU_PERCENTAGE,
+        y_series_list = get_series_from_frames(frames, Col.CPU_PERCENTAGE)
+        x_series = pd.Series(range(len(y_series_list[0])))
+        
+        plot_multiple_std(
+            y_series_list= y_series_list,
+            x_series = x_series,
             labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
             output=Manual.output_prefix,
             x_label='Segundos',
             y_label='Cpu %',
-            title='Cpu % por segundo'
+            title='Cpu % por segundo',
+            y_min=0,
+            y_max=100
         )
         
 
