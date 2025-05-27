@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from columns import *
+from src.columns import *
 from src.graph.binary_mask_plot import *
 
 
