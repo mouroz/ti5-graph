@@ -61,7 +61,7 @@ class BaseAutomatica:
             y_series_list= y_series_list,
             x_series = x_series,
             labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
-            output=BaseAutomatica.output_prefix,
+            output=BaseAutomatica.image_path,
             x_label='Segundos',
             y_label='Cpu %',
             title='Cpu % por segundo',

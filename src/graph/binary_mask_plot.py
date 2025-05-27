@@ -102,6 +102,7 @@ def plot_colored_by_binary_mask(
         color_false, 
         **kwargs
     )
+    
 
 
 
@@ -128,5 +129,6 @@ def _plot_segment(
         label=label if not plt.gca().get_legend_handles_labels()[1].count(label) else None, 
         **kwargs
     )
+    
 
 

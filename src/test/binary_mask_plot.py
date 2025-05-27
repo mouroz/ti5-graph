@@ -9,6 +9,8 @@ x = pd.Series(range(100))
 y = pd.Series(np.sin(np.linspace(0, 20, 100)))
 mask = y > 0  # Just as an example condition
 
+
+
 plt.figure(figsize=(12, 4))
 plot_colored_by_binary_mask(x, y, mask, label_true='Positive', label_false='Negative')
 plt.title("Line colored by sign")
