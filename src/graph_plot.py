@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from columns import *
+# from columns import *
+from src.columns import *
 
 
 def plot_multiple_std(

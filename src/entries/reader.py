@@ -2,7 +2,8 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-from columns import *
+# from columns import *
+from src.columns import *
 import chardet
 
 def custom_time_parser(time_str):
