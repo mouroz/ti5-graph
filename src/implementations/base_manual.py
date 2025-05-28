@@ -14,7 +14,7 @@ from src.columns import *
 from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
-from src.pre_processing.base_csv_read import *
+from src.pre_processing.base_csv_merge import *
 
 
 intervals = [
