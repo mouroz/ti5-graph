@@ -11,20 +11,13 @@ from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
 
-
-def joint_csv(hw_input_csv: str, rpm_input_csv: str) -> pd.DataFrame:
-    hw_df = pd.read_csv(hw_input_csv, usecols=Col.original_names(), index_col=False)
-    rpm_df = pd.read_csv(rpm_input_csv, usecols=Col.original_names(), index_col=False)
-    rpm_df.head()
-    return pd.concat([hw_df, rpm_df], ignore_index=True)
-
-def join_csv_files(base_csv_path, rpm_csv_path, output_path=None):
+def join_csv_files(base_csv_path:str, rpm_csv_path:str, output_path=None) -> pd.DataFrame:
     # Read both CSV files
     base_df = pd.read_csv(base_csv_path)
     rpm_df = pd.read_csv(rpm_csv_path)
     
     # Convert 'Time' to string first, then create join key by removing milliseconds
-    base_df['join_time'] = base_df['Date'].astype(str).str.split('.').str[0]
+    base_df['join_time'] = base_df['Time'].astype(str).str.split('.').str[0]
     
     # Create corresponding join key from rpm_base_manual.csv Timestamp column
     rpm_df['join_time'] = rpm_df['Timestamp']
@@ -34,12 +27,14 @@ def join_csv_files(base_csv_path, rpm_csv_path, output_path=None):
     
     # Remove the temporary join column
     merged_df = merged_df.drop('join_time', axis=1)
+    merged_df = merged_df.drop('Time', axis=1, errors='ignore') 
     
+    final_df = fix_dataframe_inconsistencies(merged_df)
     # Save the result if output path is provided
     if output_path:
-        merged_df.to_csv(output_path, index=False)
+        final_df.to_csv(output_path, index=False)
         
-    return fix_dataframe_inconsistencies(merged_df)
+    return final_df
 
 def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
@@ -49,11 +44,7 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     3. Removing duplicates
     """
     # Ensure 'Timestamp' is in datetime format
-    dataframe['Timestamp'] = pd.to_datetime(dataframe['Timestamp'], errors='coerce')
-    
-    # Also convert Date to datetime if it exists
-    if 'Date' in dataframe.columns:
-        dataframe['Date'] = pd.to_datetime(dataframe['Date'], errors='coerce')
+    dataframe['Timestamp'] = pd.to_datetime(dataframe['Timestamp'], errors='coerce', format="%H:%M:%S")
     
     # Sort by 'Timestamp'
     dataframe = dataframe.sort_values(by='Timestamp')
@@ -71,18 +62,16 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
         # Calculate the time difference in seconds
         time_diff = (next_row['Timestamp'] - current_row['Timestamp']).total_seconds()
         
+        
         # If gap is more than 1 second, create interpolated rows
         if time_diff > 1.0:
+            print(f"Filling gap of {time_diff} seconds between {current_row['Timestamp']} and {next_row['Timestamp']}")
             for sec in range(1, int(time_diff)):
                 # Create a new row by copying the current row
                 new_row = current_row.copy()
                 
                 # Update Timestamp
                 new_row['Timestamp'] = current_row['Timestamp'] + pd.Timedelta(seconds=sec)
-                
-                # Update Date if it exists
-                if 'Date' in dataframe.columns:
-                    new_row['Date'] = current_row['Date'] + pd.Timedelta(seconds=sec)
                 
                 # Update relativeTime if it exists (format: MM:SS)
                 if 'relativeTime' in dataframe.columns:
@@ -109,6 +98,17 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     # Sort again to ensure proper order
     result_df = result_df.sort_values(by='Timestamp')
     
+    # Convert 'Timestamp' back to string format HH:MM:SS
+    result_df['Timestamp'] = result_df['Timestamp'].dt.strftime('%H:%M:%S')
+    # result_df.drop(columns=['Unnamed: 294'], inplace=True, errors='ignore')
+
+    # ensure 'relativeTime' is correctly crescent
+    for i in range(0, len(result_df)-1, 1):
+        new_time = i
+        new_mins = new_time // 60
+        new_secs = new_time % 60
+        result_df.at[i, 'relativeTime'] = f"{new_mins:02d}:{new_secs:02d}"
+
     return result_df
 
 

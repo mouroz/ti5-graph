@@ -88,6 +88,10 @@ def plot_all_cases(
     y_label:str, 
     title:str
 ):
+    print(f"Plotting {len(frames)} cases for column {col.standard}")
+
+    print(f"lines: {frames[0]}")
+
     y_series:list[pd.Series] = []
     for frame in frames:
         y_series.append(frame[col.standard])
