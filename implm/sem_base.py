@@ -28,17 +28,17 @@ intervals = [
 
 class SemBase:
     input_csv_path = 'data/sem_base.csv'
-    image_path = 'example/output.png'
-    output_prefix = 'data/sem_base/test'
+    image_path = 'example/graph_sem_base.png'
+    output_prefix = 'example/sem_base/case'
     
     _frames:list[pd.DataFrame] | None = None
     
     @staticmethod
-    def get_frames() -> list[pd.DataFrame]:
+    def get_frames(input_csv = input_csv_path, output_prefix = output_prefix):
         if SemBase._frames is None:
             SemBase._frames = get_cases_from_csv(
-                input_csv=SemBase.input_csv_path, 
-                output_prefix=SemBase.output_prefix, 
+                input_csv=input_csv, 
+                output_prefix=output_prefix, 
                 intervals=intervals, 
                 save_as_csv=True
             )
@@ -52,7 +52,7 @@ class SemBase:
     
 
     @staticmethod
-    def plot_cpu_percentage():
+    def plot_cpu_percentage(img_path:str = image_path):
         frames = SemBase.get_frames()
         y_series_list = get_series_from_frames(frames, Col.CPU_PERCENTAGE)
         x_series = pd.Series(range(len(y_series_list[0])))
@@ -61,7 +61,7 @@ class SemBase:
             y_series_list= y_series_list,
             x_series = x_series,
             labels=['caso 1', 'caso 2', 'caso 3', 'caso 4'],
-            output=SemBase.image_path,
+            output=img_path,
             x_label='Segundos',
             y_label='Cpu %',
             title='Cpu % por segundo',
@@ -69,7 +69,7 @@ class SemBase:
             y_max=100
         )
         
-    def test_plot_with_color():
+    def test_plot_with_color(img_path:str = image_path):
         frames = SemBase.get_frames()
         y_series_list = get_series_from_frames(frames, Col.CPU_PERCENTAGE)
         x_series = pd.Series(range(len(y_series_list[0])))
@@ -81,13 +81,14 @@ class SemBase:
             y_series_list=y_series_list,
             x_series=x_series,
             mask=mask,
-            output="example/output2.png",
+            output=img_path,
             x_label='Segundos',
             y_label='Cpu %',
             title='Cpu % por segundo',
             y_min=0,
             y_max=100
         )
+        
 if __name__ == '__main__':  
     SemBase.plot_cpu_percentage()
     SemBase.test_plot_with_color()

@@ -1,3 +1,4 @@
+
 import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -138,24 +139,37 @@ def mainMenu() -> tuple[str, str]:
 
     return hardwareInfo_csv_path, java_csv_path
 
+
+from implm.sem_base import *
+from implm.base_automatica import *
+from implm.base_manual import *
+
+
+
+
+# def old():  
+#     SemBase.plot_cpu_percentage()
+#     SemBase.test_plot_with_color()
     
+#     BaseAutomatica.plot_cpu_percentage()
+    
+#     BaseManual.plot_cpu_percentage()
+ 
+
 if __name__ == '__main__':  
-    initialize_folders()
-    hardwareInfo_csv_path, java_csv_path = mainMenu()
+    old()
+    # initialize_folders()
+    # hardwareInfo_csv_path, java_csv_path = mainMenu()
     
-    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
+    # merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
 
 
     
-    _frames = get_cases_from_csv(input_csv = merged_csv_path, output_prefix = choice_output_folder, intervals=intervals, save_as_csv=True)
+    # _frames = get_cases_from_csv(input_csv = merged_csv_path, output_prefix = choice_output_folder, intervals=intervals, save_as_csv=True)
                                  
 
-    # remove_tmp_files()
-    print(f"Joined data has {len(result)} rows")
-    print(result)
+    # # remove_tmp_files()
+    # print(f"Joined data has {len(result)} rows")
+    # print(result)
     # Manual.plot_cpu_percentage()
 
-    
-    
-    
-    

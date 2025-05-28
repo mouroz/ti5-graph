@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from datetime import datetime
-from src.implementations.sem_base import *
+from implm.sem_base import *
 
 
 import sys
@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
 from src.entries import *
-from src.implementations.sem_base import *
+from implm.sem_base import *
 
 
     
