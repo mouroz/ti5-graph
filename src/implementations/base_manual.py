@@ -7,13 +7,14 @@ import sys
 import os
 
 # Add parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from src.columns import *
 from src.entries.csv_split import *
 from src.graph.simple_plot import *
 from src.entries import *
-
+from src.pre_processing.base_csv_merge import *
 
 
 intervals = [
@@ -73,6 +74,9 @@ class Manual:
 
     
 if __name__ == '__main__':  
+    result = join_csv_files('data/base_manual.csv', 'data/rpm_base_manual.csv', 'data/merged_data.csv')
+    print(f"Joined data has {len(result)} rows")
+    print(result)
     Manual.plot_cpu_percentage()
 
     
