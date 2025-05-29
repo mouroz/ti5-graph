@@ -3,41 +3,49 @@ import pandas as pd
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from typing import Tuple, List, Dict
 
-modelo_poly:LinearRegression = any
-transformador_poly:PolynomialFeatures = any
+# Global variables to store the trained model and transformer
+modelo_poly: LinearRegression | None = None
+transformador_poly: PolynomialFeatures | None = None
 
-def prever_ruido_em_csv(modelo, transformador, caminho_csv):
+def load_and_clean_csv(csv_path: str) -> pd.DataFrame:
+    """Load and clean CSV data."""
+    df = pd.read_csv(csv_path, encoding='ISO-8859-1', sep=',')
+    
+    # Convert 'Nivel de Ruido' to string first, then replace comma with dot, then convert to float
+    if 'Nivel de Ruido' in df.columns:
+        df['Nivel de Ruido'] = df['Nivel de Ruido'].astype(str).str.replace(',', '.').astype(float)
 
-    # Ler novo CSV
-    novo_df = pd.read_csv(caminho_csv, encoding='ISO-8859-1', sep=',')
-    print(novo_df.columns)
-    print(novo_df)
-    novo_df['RPM'] = pd.to_numeric(novo_df['RPM'], errors='coerce')
-    novo_df['CPU [RPM]'] = pd.to_numeric(novo_df['CPU [RPM]'], errors='coerce')
+    if 'Velocidade Fan Base' in df.columns:
+        df['Velocidade Fan Base'] = pd.to_numeric(df['Velocidade Fan Base'], errors='coerce')
+    elif 'RPM' in df.columns:
+        df['Velocidade Fan Base'] = pd.to_numeric(df['RPM'], errors='coerce')
+    
+    if 'Velocidade Fan PC' in df.columns:
+        df['Velocidade Fan PC'] = pd.to_numeric(df['Velocidade Fan PC'], errors='coerce')
+    elif 'RPM' in df.columns and :
+        
+    
+    return df
 
-    novo_df = novo_df.rename(columns={'RPM': 'Velocidade Fan Base', 'CPU [RPM]': 'Velocidade Fan PC'})
+def split_train_test(df: pd.DataFrame, 
+                    train_values: List[int] = [0, 960, 1530, 1980, 2340],
+                    test_values: List[int] = [600, 1290, 1770, 2190]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Split data into training and test sets based on Velocidade Fan Base values."""
+    df_treino = df[df['Velocidade Fan Base'].isin(train_values)].copy()
+    df_teste = df[df['Velocidade Fan Base'].isin(test_values)].copy()
+    
+    print(f"Dataset de treino: {len(df_treino)} amostras")
+    print(f"Dataset de teste: {len(df_teste)} amostras")
+    
+    return df_treino, df_teste
 
-
-    # Filtrar apenas valores válidos
-    mask = novo_df[['Velocidade Fan Base', 'Velocidade Fan PC']].notnull().all(axis=1)
-
-
-
-    # Transformar os dados para o modelo
-    X_novo = novo_df.loc[mask, ['Velocidade Fan Base', 'Velocidade Fan PC']]
-    X_novo_poly = transformador.transform(X_novo)
-
-    # Prever ruído
-    novo_df['RuidoEstimadoPoly'] = np.nan
-    novo_df.loc[mask, 'RuidoEstimadoPoly'] = modelo.predict(X_novo_poly)
-
-    return novo_df
-
-def regressao_polinomial_ruido(df, grau=2):
+def train_polynomial_regression(df: pd.DataFrame, grau: int = 2) -> Tuple[LinearRegression, PolynomialFeatures, pd.DataFrame]:
+    """Train polynomial regression model."""
     # Preparar os dados
     X = df[['Velocidade Fan Base', 'Velocidade Fan PC']].copy()
-    y = df['Nível de Ruído'].copy()
+    y = df['Nivel de Ruido'].copy()
 
     # Remover entradas nulas
     mask = X.notnull().all(axis=1) & y.notnull()
@@ -55,60 +63,138 @@ def regressao_polinomial_ruido(df, grau=2):
     # Previsões
     y_pred = model.predict(X_poly)
 
-    # Métricas
-    rmse = np.sqrt(mean_squared_error(y, y_pred))
-    mae = mean_absolute_error(y, y_pred)
-
     # Aplicar ao DataFrame original (onde possível)
     df['RuidoEstimadoPoly'] = np.nan
     df.loc[mask, 'RuidoEstimadoPoly'] = y_pred
 
-    print(f"Regressão Polinomial grau {grau}: RMSE = {rmse:.3f} | MAE = {mae:.3f}")
     return model, poly, df
 
-def create_polinomial_regression(grau=2):
-    """
-    Cria um modelo de regressão polinomial para prever o nível de ruído com base na velocidade do fan.
+def predict_with_model(df: pd.DataFrame) -> pd.DataFrame:
+    """Predict noise levels using the trained model."""
+    global modelo_poly, transformador_poly
     
-    Parâmetros:
-    - grau: Grau do polinômio a ser usado na regressão (default é 2).
-    """
-    df = pd.read_csv("data/fan_db_tests.csv", encoding='ISO-8859-1', sep=',')
+    if modelo_poly is None or transformador_poly is None:
+        raise ValueError("Modelo polinomial ou transformador não foram definidos.")
     
-    # Exemplo de uso:
+    # Preparar os dados
+    mask = df[['Velocidade Fan Base', 'Velocidade Fan PC']].notnull().all(axis=1)
+    X = df.loc[mask, ['Velocidade Fan Base', 'Velocidade Fan PC']]
+    X_poly = transformador_poly.transform(X)
+    
+    # Prever ruido
+    df['RuidoEstimadoPoly'] = np.nan
+    df.loc[mask, 'RuidoEstimadoPoly'] = modelo_poly.predict(X_poly)
+    return df
 
-    df['Nivel de Ruido'] = df['Nivel de Ruido'].str.replace(',', '.').astype(float)
-    df['Velocidade Fan Base'] = pd.to_numeric(df['Velocidade Fan Base'], errors='coerce')
-    df['Velocidade Fan PC'] = pd.to_numeric(df['Velocidade Fan PC'], errors='coerce')
+def predict_with_csv(csv_path: str) -> pd.DataFrame:
+    df = load_and_clean_csv(csv_path)
+    df = predict_with_model(df)
+    return df
 
-    # Rodar regressão polinomial de grau 3
-    modelo_poly, transformador_poly, df = regressao_polinomial_ruido(df, grau=3)
+def calculate_metrics(df: pd.DataFrame, real_col: str = 'Nivel de Ruido', 
+                     pred_col: str = 'RuidoEstimadoPoly') -> Dict[str, float]:
+    """Calculate RMSE, MAE, mean difference, and max difference."""
+    mask = df[[real_col, pred_col]].notnull().all(axis=1)
+    
+    if not mask.any():
+        return {'rmse': np.nan, 'mae': np.nan, 'mean_diff': np.nan, 'max_diff': np.nan}
+    
+    y_true = df.loc[mask, real_col]
+    y_pred = df.loc[mask, pred_col]
+    
+    # Calculate difference
+    diff = y_true - y_pred
+    
+    return {
+        'rmse': np.sqrt(mean_squared_error(y_true, y_pred)),
+        'mae': mean_absolute_error(y_true, y_pred),
+        'mean_diff': diff.mean(),
+        'max_diff': diff.abs().max()
+    }
 
-    df_result = prever_ruido_em_csv(modelo_poly, transformador_poly, "merged_data.csv")
+def print_polynomial_equation(model: LinearRegression, poly_features: PolynomialFeatures, 
+                             feature_names: List[str] = ['Velocidade Fan Base', 'Velocidade Fan PC']):
+    """Print the polynomial equation generated by the model."""
+    feature_names_poly = poly_features.get_feature_names_out(feature_names)
+    coefficients = model.coef_
+    intercept = model.intercept_
+    
+    print("\n=== FUNÇÃO POLINOMIAL GERADA ===")
+    print(f"Intercepto: {intercept:.10f}")
+    print("\nCoeficientes:")
+    
+    equation = f"Ruído = {intercept:.10f}"
+    
+    for coef, feature in zip(coefficients, feature_names_poly):
+        print(f"{feature}: {coef:.10f}")
+        
+        if coef >= 0:
+            equation += f" + {coef:.10f} * {feature}"
+        else:
+            equation += f" - {abs(coef):.10f} * {feature}"
+    
+    print(f"\nEquação completa:")
+    print(equation)
+    
+    readable_equation = equation.replace('Velocidade Fan Base', 'VB').replace('Velocidade Fan PC', 'VPC')
+    print(f"\nVersão simplificada:")
+    print(readable_equation)
 
-    # Visualizar comparação e calcular a diferença média
-    print("\nComparação Nível de Ruído vs RuidoEstimadoPoly:")
-
-    # Visualizar comparação e calcular a diferença média (Visualização Tabular)
-    print("\nComparação Nível de Ruído vs RuidoEstimadoPoly:")
-
-    # Calcular a diferença
-    df['Diferença Ruido'] = df['Nível de Ruído'] - df['RuidoEstimadoPoly']
-
-    # Imprimir cabeçalho da tabela
+def print_comparison_table(df: pd.DataFrame, title: str, metrics: Dict[str, float]):
+    """Print comparison table with predictions vs real values."""
+    df['Diferença Ruido'] = df['Nivel de Ruido'] - df['RuidoEstimadoPoly']
+    
+    print(f"\n=== {title} ===")
+    print("Comparação Nível de Ruído vs RuidoEstimadoPoly:")
     print("------------------------------------------------------------------------------")
     print("Base RPM\tPC RPM\t\tRuído Real\tRuído Estimado (Poly)\tDiferença")
     print("------------------------------------------------------------------------------")
 
-    # Imprimir linha a linha com tabs
-    for index, row in df[['Velocidade Fan Base', 'Velocidade Fan PC', 'Nível de Ruído', 'RuidoEstimadoPoly', 'Diferença Ruido']].iterrows():
-        print(f"{row['Velocidade Fan Base']}\t\t{row['Velocidade Fan PC']}\t\t{row['Nível de Ruído']:.3f}\t\t{row['RuidoEstimadoPoly']:.3f}\t\t\t{row['Diferença Ruido']:.3f}")
+    for _, row in df[['Velocidade Fan Base', 'Velocidade Fan PC', 'Nivel de Ruido', 'RuidoEstimadoPoly', 'Diferença Ruido']].iterrows():
+        print(f"{row['Velocidade Fan Base']:.0f}\t\t{row['Velocidade Fan PC']:.0f}\t\t{row['Nivel de Ruido']:.3f}\t\t{row['RuidoEstimadoPoly']:.3f}\t\t\t{row['Diferença Ruido']:.3f}")
 
-    # Imprimir separador final da tabela
-    print("------------------------------------------------------------------------------")
+    print(f"\nMétricas do conjunto de {title}:")
+    print(f"RMSE: {metrics['rmse']:.3f}")
+    print(f"MAE: {metrics['mae']:.3f}")
+    print(f"Diferença média: {metrics['mean_diff']:.3f}")
+    print(f"Diferença máxima: {metrics['max_diff']:.3f}")
 
-    # Calcular a diferença média
-    diferenca_media = df['Diferença Ruido'].mean()
-    print(f"\nDiferença média entre Ruído Real e Ruído Estimado (Poly): {diferenca_media:.3f}")
-
-    print(df_result)
+def create_polinomial_regression_from_csv(grau: int = 2, csv_path: str = "data/fans_db_tests.csv", log_in_terminal: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Main function to create polynomial regression model from CSV data.
+    
+    Parameters:
+    - grau: Degree of polynomial (default is 2)
+    - csv_path: Path to CSV file
+    
+    Returns:
+    - Tuple of (training_df, test_df)
+    """
+    global modelo_poly, transformador_poly
+    
+    # Load and clean data
+    df = load_and_clean_csv(csv_path)
+    
+    # Split into train/test sets
+    df_treino, df_teste = split_train_test(df)
+    
+    # Train model on training set
+    modelo_poly, transformador_poly, df_treino = train_polynomial_regression(df_treino, grau=grau)
+    
+    # Print polynomial equation
+    if log_in_terminal:
+        print_polynomial_equation(modelo_poly, transformador_poly)
+    
+    # Predict on test set
+    df_teste = predict_with_model(df_teste)
+    
+    # Calculate metrics for both sets
+    metrics_treino = calculate_metrics(df_treino)
+    metrics_teste = calculate_metrics(df_teste)
+    
+    # Generate reports
+    if log_in_terminal:
+        print_comparison_table(df_treino, "CONJUNTO DE TREINO", metrics_treino)
+        print_comparison_table(df_teste, "CONJUNTO DE TESTE", metrics_teste)
+    
+    return df_treino, df_teste

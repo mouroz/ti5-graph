@@ -11,6 +11,7 @@ from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
 from src.pre_processing.base_csv_merge import *
+from src.pre_processing.db_math_regression import *
 
 dataFolder = os.path.join(os.path.dirname(__file__), 'data')
 input_csv_folder = os.path.join(dataFolder, 'input')
@@ -189,13 +190,27 @@ def get_intervals_from_df(df: pd.DataFrame) -> list[Interval]:
     return intervals
 
 if __name__ == '__main__':  
-    initialize_folders()
-    hardwareInfo_csv_path, java_csv_path = mainMenu()
+    # initialize_folders()
+    # hardwareInfo_csv_path, java_csv_path = mainMenu()
     
-    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
+    # merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
 
-    intervals = get_intervals_from_df(merged_df)
+    # intervals = get_intervals_from_df(merged_df)
 
+    create_polinomial_regression_from_csv(grau=3, csv_path=os.path.join(dataFolder, 'fans_db_tests.csv'), log_in_terminal=False)
+
+
+    df_test = predict_with_csv(
+        csv_path=os.path.join(dataFolder, 'pc_fan_db_tests.csv'),
+    )
+
+    print_comparison_table(
+        df=df_test,
+        title="Teste de Ventoinha PC",
+        metrics=calculate_metrics(df_test)
+    )
+
+    
     
     # _frames = get_cases_from_csv(input_csv = merged_csv_path, output_prefix = choice_output_folder, intervals=intervals, save_as_csv=True)
                                  
