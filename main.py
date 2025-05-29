@@ -1,4 +1,3 @@
-
 import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -155,14 +154,47 @@ from implm.base_manual import *
     
 #     BaseManual.plot_cpu_percentage()
  
+def get_intervals_from_df(df: pd.DataFrame) -> list[Interval]:
+    """
+    Extracts the sequential intervals from the 'relativeTime' column of the DataFrame that IsTestRunning is true.
+    Returns a list of Interval objects.
+    """
+    intervals = []
+    
+    start_time = None
+    
+    for i, row in df.iterrows():
+        is_test_running = row['IsTestRunning']
+        relative_time = row['relativeTime']
+        
+
+        # If IsTestRunning is True and we don't have a start time, mark the start
+        if is_test_running and start_time is None:
+            start_time = relative_time
+        
+        # If IsTestRunning is False and we have a start time, mark the end and create interval
+        elif not is_test_running and start_time is not None:
+            # The end time is the previous row's time (last True value)
+            if i > 0:
+                end_time = df.iloc[i]['relativeTime']
+                intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
+                print(f"Interval added: {start_time} - {end_time}")
+            start_time = None
+    # Handle case where the DataFrame ends with IsTestRunning = True
+    if start_time is not None:
+        end_time = df.iloc[-1]['relativeTime']
+        intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
+        print(f"Final interval added: {start_time} - {end_time}")
+    
+    return intervals
 
 if __name__ == '__main__':  
-    old()
-    # initialize_folders()
-    # hardwareInfo_csv_path, java_csv_path = mainMenu()
+    initialize_folders()
+    hardwareInfo_csv_path, java_csv_path = mainMenu()
     
-    # merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
+    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
 
+    intervals = get_intervals_from_df(merged_df)
 
     
     # _frames = get_cases_from_csv(input_csv = merged_csv_path, output_prefix = choice_output_folder, intervals=intervals, save_as_csv=True)

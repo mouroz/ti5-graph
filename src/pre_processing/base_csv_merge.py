@@ -15,6 +15,10 @@ def join_csv_files(base_csv_path:str, rpm_csv_path:str, output_path=None) -> pd.
     # Read both CSV files
     base_df = pd.read_csv(base_csv_path)
     rpm_df = pd.read_csv(rpm_csv_path)
+
+    # Remove last line of base_df
+    if not base_df.empty and base_df.iloc[-1].isnull().all():
+        base_df = base_df[:-1]
     
     # Convert 'Time' to string first, then create join key by removing milliseconds
     base_df['join_time'] = base_df['Time'].astype(str).str.split('.').str[0]
@@ -62,7 +66,6 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
         # Calculate the time difference in seconds
         time_diff = (next_row['Timestamp'] - current_row['Timestamp']).total_seconds()
         
-        
         # If gap is more than 1 second, create interpolated rows
         if time_diff > 1.0:
             print(f"Filling gap of {time_diff} seconds between {current_row['Timestamp']} and {next_row['Timestamp']}")
@@ -83,6 +86,10 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
                         new_secs = total_secs % 60
                         new_row['relativeTime'] = f"{new_mins:02d}:{new_secs:02d}"
                 
+                # Reset the index so the new row does not keep the original index
+                new_row = new_row.copy()
+                new_row.name = None  # Remove the index name
+                
                 all_rows.append(new_row)
     
     # Add the last row
@@ -91,23 +98,43 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     
     # Create a new DataFrame from all rows
     result_df = pd.DataFrame(all_rows)
-    
+
     # Remove duplicates based on 'Timestamp'
     result_df = result_df.drop_duplicates(subset='Timestamp')
     
     # Sort again to ensure proper order
     result_df = result_df.sort_values(by='Timestamp')
     
+    # Reset index to ensure it is sequential
+    result_df = result_df.reset_index(drop=True)
+
     # Convert 'Timestamp' back to string format HH:MM:SS
     result_df['Timestamp'] = result_df['Timestamp'].dt.strftime('%H:%M:%S')
     # result_df.drop(columns=['Unnamed: 294'], inplace=True, errors='ignore')
 
-    # ensure 'relativeTime' is correctly crescent
-    for i in range(0, len(result_df)-1, 1):
-        new_time = i
-        new_mins = new_time // 60
-        new_secs = new_time % 60
-        result_df.at[i, 'relativeTime'] = f"{new_mins:02d}:{new_secs:02d}"
+    # # ensure 'relativeTime' is correctly crescent
+    # for i in range(0, len(result_df)-1, 1):
+    #     new_time = i
+    #     new_mins = new_time // 60
+    #     new_secs = new_time % 60
+    #     result_df.at[i, 'relativeTime'] = f"{new_mins:02d}:{new_secs:02d}"
+
+
+    # Use a public approach to deduplicate column names
+    # def deduplicate_columns(cols):
+    #     seen = {}
+    #     new_cols = []
+    #     for col in cols:
+    #         if col not in new_cols:
+    #             seen[col] = 0
+    #             new_cols.append(col)
+    #             # print(f"Column name {col} is unique.")
+    #         else:
+    #             seen[col] += 1
+    #             new_cols.append(f"{col}_{seen[col]}")
+    #             print(f"Duplicate column name found: {col}. Renaming to {new_cols[-1]}")
+    #     return new_cols
+    # result_df.columns = deduplicate_columns(result_df.columns)
 
     return result_df
 
