@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.columns import *
-from src.entries.csv_split import *
+from src.entries.create_entries import *
 from src.graph.simple_plot import *
 from src.entries import *
 

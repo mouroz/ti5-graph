@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
 from src.columns import *
+from src.dataframe_pipeline import CleanedFrame
 from src.graph.simple_plot import *
-from src.entries.reader import *
 from src.entries.interval import *
 
 
-def split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[pd.DataFrame]:
+def _split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[pd.DataFrame]:
     """
     Splits the dataframe into parts based on a list of Interval(start, end).
     Throws ValueError if there are rows in df[time_col] not covered by any interval.
@@ -33,16 +33,15 @@ def split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[p
     return chunks
 
 
+# Additional methods to apply to each entry
+def manipulate_cases_df(df: pd.DataFrame) -> pd.DataFrame:
+    #df = df.drop(columns=[Col.TIMESTAMP.standard])
+    return df
 
 
-def get_cases_from_csv(input_csv: str, output_prefix: str, intervals: list[Interval], save_as_csv: bool) -> list[pd.DataFrame]:
-    df = read_csv(input_csv)
-    # print(df.head())
-    # print(df.columns)
-    # print(df.info())
-
-    
-    results:list[pd.DataFrame] = split_df_by_intervals(df, intervals)
+def get_cases_from_frame(frame: RenamedFrame, output_prefix: str, intervals: list[Interval], save_as_csv: bool) -> list[pd.DataFrame]:
+    df = frame.df
+    results:list[pd.DataFrame] = _split_df_by_intervals(df, intervals)
     
     updated:list[pd.DataFrame] = []
     for i, chunk in enumerate(results):
