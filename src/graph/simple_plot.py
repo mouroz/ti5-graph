@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from src.columns import *
+from src.reader.merged.merged_columns import *
 from src.graph.binary_mask_plot import *
 
 
@@ -50,7 +50,7 @@ def plot_multiple_std(
 
 def plot_all_cases(
     frames: list[pd.DataFrame], 
-    col: Col, 
+    col: MergedCol, 
     labels:list[str], 
     output:str, 
     x_label:str, 

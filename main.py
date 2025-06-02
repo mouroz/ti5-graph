@@ -6,11 +6,11 @@ from datetime import datetime
 import sys
 import os
 
-from src.columns import *
+from src.reader.merged.merged_columns import *
 from src.entries.create_entries import *
 from src.graph.simple_plot import *
 from src.entries import *
-from src.pre_processing.merge import *
+from src.reader.merged.read_merged import *
 # from src.pre_processing.db_math_regression import *
 
 dataFolder = os.path.join(os.path.dirname(__file__), 'data')
@@ -88,74 +88,14 @@ def mainMenu() -> tuple[str, str]:
     return hardwareInfo_csv_path, java_csv_path
 
 
-from implm.sem_base import *
-from implm.base_automatica import *
-from implm.base_manual import *
-
-
-
-
-# def old():  
-#     SemBase.plot_cpu_percentage()
-#     SemBase.test_plot_with_color()
-    
-#     BaseAutomatica.plot_cpu_percentage()
-    
-#     BaseManual.plot_cpu_percentage()
- 
-def get_intervals_from_df(df: pd.DataFrame) -> list[Interval]:
-    """
-    Extracts the sequential intervals from the 'relativeTime' column of the DataFrame that IsTestRunning is true.
-    Returns a list of Interval objects.
-    """
-    intervals = []
-    
-    start_time = None
-    
-    for i, row in df.iterrows():
-        is_test_running = row['IsTestRunning']
-        relative_time = row['relativeTime']
-        
-
-        # If IsTestRunning is True and we don't have a start time, mark the start
-        if is_test_running and start_time is None:
-            start_time = relative_time
-        
-        # If IsTestRunning is False and we have a start time, mark the end and create interval
-        elif not is_test_running and start_time is not None:
-            # The end time is the previous row's time (last True value)
-            if i > 0:
-                end_time = df.iloc[i]['relativeTime']
-                intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
-                print(f"Interval added: {start_time} - {end_time}")
-            start_time = None
-            
-    # Handle case where the DataFrame ends with IsTestRunning = True
-    if start_time is not None:
-        end_time = df.iloc[-1]['relativeTime']
-        intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
-        print(f"Final interval added: {start_time} - {end_time}")
-    
-    return intervals
-
-
-
-def csv_prepare(hardwareInfo_csv_path: str, java_csv_path: str, merged_csv_path: str) -> pd.DataFrame:
-    """
-    Prepares the CSV files by merging them and returning the resulting DataFrame.
-    """
-    merged_df = save_merged_csv(hardwareInfo_csv_path, java_csv_path, merged_csv_path)
-
-    return merged_df
-
-
 
 
 if __name__ == '__main__':  
+    print("Hello world")
     # initialize_folders()
     # hardwareInfo_csv_path, java_csv_path = mainMenu()
     
-    csv_prepare("data/input/base_manual/hw_info.csv", "data/input/base_manual/java.csv", "data/output/base_manual/merged_data.csv")
+    #csv_prepare("data/input/base_manual/hw_info.csv", "data/input/base_manual/java.csv", "data/output/base_manual/merged_data.csv")
     
     # merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
 

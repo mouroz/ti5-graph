@@ -5,14 +5,14 @@ class RawMergeFrame:
         self.df = df
 
     
-class ColumnEnsuredFrame:
+class MergedColumnEnsuredFrame:
     def __init__(self, df: RawMergeFrame):
         self.df = df
 
-class CleanedFrame:
-    def __init__(self, df: ColumnEnsuredFrame):
+class MergedCleanFrame:
+    def __init__(self, df: MergedColumnEnsuredFrame):
         self.df = df
         
-class RenamedFrame:
-    def __init__(self, df: CleanedFrame):
+class MergedRenamedFrame:
+    def __init__(self, df: MergedCleanFrame):
         self.df = df

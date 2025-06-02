@@ -6,11 +6,11 @@ from datetime import datetime
 import sys
 import os
 
-from src.columns import *
+from src.reader.merged.merged_columns import *
 from src.entries.create_entries import *
 from src.entries import *
-from src.columns import BASE_TIMESTAMP, RPM_TIMESTAMP
-from src.dataframe_pipeline import *
+from src.reader.merged.merged_columns import BASE_TIMESTAMP, RPM_TIMESTAMP
+from src.reader.merged.read_merged_pipeline import *
     
 class InvalidTimestampError(ValueError):
     pass
@@ -34,9 +34,21 @@ def join_csv_files(base_csv_path:str, rpm_csv_path:str) -> RawMergeFrame:
         Dataframe with merged values. If no values are merged, return an empty dataframe
     """
     # Read both CSV files
-    base_df = pd.read_csv(base_csv_path)
-    rpm_df = pd.read_csv(rpm_csv_path)
-
+    try:
+        base_df = pd.read_csv(base_csv_path)
+        rpm_df = pd.read_csv(rpm_csv_path)
+        
+    except pd.errors.ParserError as e:  
+        raise ValueError(f"Error parsing the CSV file: {e}")
+    
+    except KeyError as e:
+        raise ValueError(f"Missing required columns in the CSV file: {e}")
+    
+    except FileNotFoundError:
+        raise ValueError(f"The file {base_csv_path} does not exist.")
+    
+    
+    
     # Remove last line of base_df
     if not base_df.empty and base_df.iloc[-1].isnull().all():
         base_df = base_df[:-1]
@@ -69,10 +81,10 @@ def join_csv_files(base_csv_path:str, rpm_csv_path:str) -> RawMergeFrame:
     
     
     
-    if RPM_TIMESTAMP == Col.TIMESTAMP.standard:
+    if RPM_TIMESTAMP == MergedCol.TIMESTAMP.standard:
         merged_df = merged_df.drop(BASE_TIMESTAMP, axis=1, errors='ignore') 
         
-    elif BASE_TIMESTAMP == Col.TIMESTAMP.standard:
+    elif BASE_TIMESTAMP == MergedCol.TIMESTAMP.standard:
         merged_df = merged_df.drop(RPM_TIMESTAMP, axis=1, errors='ignore')
         
     else:
@@ -83,7 +95,7 @@ def join_csv_files(base_csv_path:str, rpm_csv_path:str) -> RawMergeFrame:
 
 
 
-def verify_join_csv_files(wrapper: RawMergeFrame) -> ColumnEnsuredFrame:
+def verify_join_csv_files(wrapper: RawMergeFrame) -> MergedColumnEnsuredFrame:
     """
     Ensures that the panda result contain all the columns defined in the Col class,
     and if needed if their types match
@@ -93,14 +105,14 @@ def verify_join_csv_files(wrapper: RawMergeFrame) -> ColumnEnsuredFrame:
         contain invalid types as specificed in the Col class.
     """
     
-    Col.validate_columns(df=wrapper.df)
-    wrapper = Col.drop_unlisted_columns(wrapper)
-    return ColumnEnsuredFrame(wrapper.df)
+    MergedCol.validate_columns(df=wrapper.df)
+    wrapper = MergedCol.drop_unlisted_columns(wrapper)
+    return MergedColumnEnsuredFrame(wrapper.df)
     
 
 
 
-def fix_dataframe_inconsistencies(wrapper: ColumnEnsuredFrame) -> CleanedFrame:
+def fix_dataframe_inconsistencies(wrapper: MergedColumnEnsuredFrame) -> MergedCleanFrame:
     """
     Fix gaps in the CSV file by:
     1. Converting timestamps to datetime format
@@ -109,7 +121,7 @@ def fix_dataframe_inconsistencies(wrapper: ColumnEnsuredFrame) -> CleanedFrame:
     """
     
     dataframe = wrapper.df
-    TIMESTAMP = Col.TIMESTAMP.original
+    TIMESTAMP = MergedCol.TIMESTAMP.original
     
     
     # Remove duplicates based on 'Timestamp'
@@ -122,20 +134,20 @@ def fix_dataframe_inconsistencies(wrapper: ColumnEnsuredFrame) -> CleanedFrame:
     dataframe = dataframe.reset_index(drop=True)
 
 
-    return CleanedFrame(dataframe)
+    return MergedCleanFrame(dataframe)
 
 
 
 # Optional step for cleaned frame. Not required for the next steps
-def interpolate_missing_timestamps(wrapper: CleanedFrame) -> CleanedFrame:
+def interpolate_missing_timestamps(wrapper: MergedCleanFrame) -> MergedCleanFrame:
     
     dataframe = wrapper.df
     
     # Create a list to hold the original and interpolated rows
     all_rows = []
     
-    TIMESTAMP = Col.TIMESTAMP.original
-    RELATIVETIME = Col.RELATIVE_TIME.original
+    TIMESTAMP = MergedCol.TIMESTAMP.original
+    RELATIVETIME = MergedCol.RELATIVE_TIME.original
     
     # Process rows to fill gaps
     for i in range(len(dataframe) - 1):
@@ -180,22 +192,22 @@ def interpolate_missing_timestamps(wrapper: CleanedFrame) -> CleanedFrame:
     # Create a new DataFrame from all rows
     result_df = pd.DataFrame(all_rows)
     
-    return CleanedFrame(result_df)
+    return MergedCleanFrame(result_df)
 
 
 
-def get_merged_frame(base_csv_path:str, rpm_csv_path:str, interpolate:bool) -> RenamedFrame:
+def get_merged_frame(base_csv_path:str, rpm_csv_path:str, interpolate:bool) -> MergedRenamedFrame:
     """
     Merges two CSV files and returns a cleaned DataFrame.
     Expected errors from join_csv_files and verify_join_csv_files are thrown here
     """
     raw_wrapper: RawMergeFrame = join_csv_files(base_csv_path, rpm_csv_path)
-    safe_wrapper: ColumnEnsuredFrame = verify_join_csv_files(raw_wrapper)
-    cleaned_wrapper: CleanedFrame = fix_dataframe_inconsistencies(safe_wrapper)
+    safe_wrapper: MergedColumnEnsuredFrame = verify_join_csv_files(raw_wrapper)
+    cleaned_wrapper: MergedCleanFrame = fix_dataframe_inconsistencies(safe_wrapper)
     if interpolate:
         cleaned_wrapper = interpolate_missing_timestamps(cleaned_wrapper)
     
-    renamed_wrapper = Col.rename_columns(cleaned_wrapper)
+    renamed_wrapper = MergedCol.rename_columns(cleaned_wrapper)
     return renamed_wrapper
 
 
@@ -206,7 +218,7 @@ def save_merged_csv(
     rpm_csv_path: str, 
     output_path: str, 
     interpolate: bool = False
-) -> RenamedFrame:
+) -> MergedRenamedFrame:
     """
     Merges two CSV files and saves the result to a new CSV file.
     

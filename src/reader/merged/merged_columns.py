@@ -1,10 +1,10 @@
 from enum import Enum
 import pandas as pd
-from src.dataframe_pipeline import *
+from src.reader.merged.read_merged_pipeline import *
 
 
 # Columns for merged and prepared for graph
-class Col(Enum):
+class MergedCol(Enum):
     TIMESTAMP = ('Time', 'Time')
     RELATIVE_TIME = ('relativeTime', 'Relative Time')
     
@@ -37,42 +37,42 @@ class Col(Enum):
     @staticmethod
     def rename_map():
         """Returns dict to rename original column names to standard names."""
-        return {col.original: col.standard for col in Col}
+        return {col.original: col.standard for col in MergedCol}
 
     @staticmethod
     def original_names():
         """Returns a list of all original (raw) column names."""
-        return [col.original for col in Col]
+        return [col.original for col in MergedCol]
 
     @staticmethod
     def standard_names():
         """Returns a list of all standardized column names."""
-        return [col.standard for col in Col]
+        return [col.standard for col in MergedCol]
     
     @staticmethod
     def validate_columns(df: pd.DataFrame): 
-        missing = [col.original for col in Col if col.original not in df.columns]
+        missing = [col.original for col in MergedCol if col.original not in df.columns]
         if missing:
             raise ValueError(f"Missing required columns: {missing}")
         
     @staticmethod
-    def drop_unlisted_columns(frame: ColumnEnsuredFrame):
+    def drop_unlisted_columns(frame: MergedColumnEnsuredFrame):
         """Drops all columns from the DataFrame that are not defined in the enum (by original names)."""
         df=frame.df
-        allowed_columns = set(Col.original_names())
+        allowed_columns = set(MergedCol.original_names())
         to_drop = [col for col in df.columns if col not in allowed_columns]
         df.drop(columns=to_drop, inplace=True)
-        return ColumnEnsuredFrame(df)
+        return MergedColumnEnsuredFrame(df)
     
-    def rename_columns(frame: CleanedFrame) -> RenamedFrame:
+    def rename_columns(frame: MergedCleanFrame) -> MergedRenamedFrame:
         """Rename columns of the DataFrame in-place using the enum's original-to-standard mapping."""
         df=frame.df
-        rename_map = Col.rename_map()
+        rename_map = MergedCol.rename_map()
         df.rename(columns=rename_map, inplace=True)
-        return RenamedFrame(df)
+        return MergedRenamedFrame(df)
 
 
-BASE_TIMESTAMP = Col.TIMESTAMP.original
+BASE_TIMESTAMP = MergedCol.TIMESTAMP.original
 RPM_TIMESTAMP = 'Timestamp'
 
 

@@ -1,8 +1,8 @@
 import unittest
 import pandas as pd
 from io import StringIO
-from src.pre_processing.merge import join_csv_files, InvalidTimestampError
-from src.columns import BASE_TIMESTAMP, RPM_TIMESTAMP
+from src.reader.read_merged import join_csv_files, InvalidTimestampError
+from src.reader.merged.merged_columns import BASE_TIMESTAMP, RPM_TIMESTAMP
 import pytest
 import textwrap
 
