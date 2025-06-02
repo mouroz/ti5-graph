@@ -13,22 +13,21 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.graph.simple_plot import *
 
-from src.entries.interval import *
-from src.reader.hardware_base.read_base_pipeline import *
-from src.reader.hardware_base.base_columns import BaseCol
+from src.interval.interval import *
+from src.reader.hardware_base.pipeline import *
+from src.reader.hardware_base.columns import BaseCol
 from src.reader.hardware_base.split_frame import BaseSplitFrames
-import implm.hardware_base.get_entries as get_entries
-from src.entries.entries_frame import *
-from src.entries.create_entries import *
+from src.interval.entries_frame import *
+from src.interval.create_entries import *
 
 
 
-class SingleTest:
+class SingleCsv:
     
     _frames:BaseSplitFrames | None = None
     
     def __init__(self, input_csv: str, intervals:list[Interval], output_prefix: str|None = None):
-        frames = get_entries.get_frames(
+        frames = SingleCsv.get_frames(
             input_csv=input_csv, 
             intervals=intervals, 
             output_prefix=output_prefix                                          

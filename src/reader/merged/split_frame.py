@@ -1,10 +1,10 @@
 
-from src.reader.hardware_base.columns import *
-from src.reader.hardware_base.pipeline import BaseFrame
+from src.reader.merged.columns import *
+from src.reader.merged.pipeline import MergedFrame
 from src.interval.entries_frame import *
 import numpy as np
 
-class BaseSplitFrames:
+class MergedSplitFrames:
     """
     A class representing a constant frame of data, providing operations for retrieving and analyzing the data.
     """
@@ -18,18 +18,18 @@ class BaseSplitFrames:
         self._frames = data
         
 
-    def get_series(self, column: BaseCol) -> list[pd.Series]:
+    def get_series(self, column: MergedCol) -> list[pd.Series]:
         return self._frames.get_series(column.standard)
 
 
-    def get_means(self, column: BaseCol) -> list[float]:
+    def get_means(self, column: MergedCol) -> list[float]:
         return self._frames.get_means(column.standard)
 
-    def get_global_mean(self, column: BaseCol) -> float:
+    def get_global_mean(self, column: MergedCol) -> float:
         return self._frames.get_global_mean(column.standard)
     
-    def get_duration_in_seconds(self, column: BaseCol) -> int:
+    def get_duration_in_seconds(self, column: MergedCol) -> int:
         return self._frames.get_total_row_length()
     
-    def get_series_mean(self, column: BaseCol) -> pd.Series:
+    def get_series_mean(self, column: MergedCol) -> pd.Series:
         return self._frames.get_mean_series(column.standard)

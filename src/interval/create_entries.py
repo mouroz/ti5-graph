@@ -4,9 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
-from src.reader.merged.merged_columns import *
+from src.reader.merged.columns import *
 from src.graph.simple_plot import *
-from src.entries.interval import *
+from src.interval.interval import *
 
 
 def split_df_by_intervals(df: pd.DataFrame, intervals: list[Interval]) -> list[pd.DataFrame]:

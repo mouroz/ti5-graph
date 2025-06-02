@@ -6,9 +6,9 @@ from datetime import datetime
 import sys
 import os
 
-from src.reader.hardware_base.base_columns import BaseCol
-from src.entries.create_entries import *
-from src.entries import *
+from src.reader.hardware_base.columns import BaseCol
+from src.interval.create_entries import *
+from src.interval import *
 
 
 
@@ -115,7 +115,7 @@ class BaseFrame:
         return BaseFrame(dataframe)
         
         
-    
+    @staticmethod
     def get_base_frame(base_csv_path:str) -> "BaseFrame":
         """
         Merges two CSV files and returns a cleaned DataFrame.

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.color import *
+from src.graph.color import *
 from src.graph.mask_plot import *
 
 # Dummy data

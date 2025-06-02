@@ -6,11 +6,10 @@ from datetime import datetime
 import sys
 import os
 
-from src.reader.merged.merged_columns import *
-from src.entries.create_entries import *
+from src.reader.merged.columns import *
+from src.interval.create_entries import *
 from src.graph.simple_plot import *
-from src.entries import *
-from src.reader.merged.read_merged import *
+from src.interval import *
 # from src.pre_processing.db_math_regression import *
 
 dataFolder = os.path.join(os.path.dirname(__file__), 'data')

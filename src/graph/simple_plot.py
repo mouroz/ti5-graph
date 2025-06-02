@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from src.reader.merged.merged_columns import *
+from src.reader.merged.columns import *
 from src.graph.binary_mask_plot import *
 
 

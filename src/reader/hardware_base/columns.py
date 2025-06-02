@@ -2,7 +2,7 @@
 
 from enum import Enum
 import pandas as pd
-from src.reader.hardware_base.read_base_pipeline import *
+from src.reader.hardware_base.pipeline import *
 
 
 # Columns for merged and prepared for graph

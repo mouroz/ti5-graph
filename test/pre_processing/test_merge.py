@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 from io import StringIO
 from src.reader.read_merged import *
-from src.reader.merged.merged_columns import BASE_TIMESTAMP, RPM_TIMESTAMP
+from src.reader.merged.columns import BASE_TIMESTAMP, RPM_TIMESTAMP
 import pytest
 import textwrap
 

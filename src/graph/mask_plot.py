@@ -2,7 +2,7 @@ from typing import Callable, Any
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from src.color import *
+from src.graph.color import *
 
 def plot_multiple_masked_segments(
     x_series: pd.Series,

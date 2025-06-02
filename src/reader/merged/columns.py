@@ -1,7 +1,10 @@
 from enum import Enum
 import pandas as pd
-from src.reader.merged.read_merged_pipeline import *
+from src.reader.merged.pipeline import *
 
+
+BASE_TIMESTAMP = MergedCol.TIMESTAMP.original
+RPM_TIMESTAMP = 'Timestamp'
 
 # Columns for merged and prepared for graph
 class MergedCol(Enum):
@@ -35,6 +38,27 @@ class MergedCol(Enum):
         return self.value[1]
 
     @staticmethod
+    def hardware_columns():
+        """Returns a list of all hardware-related columns."""
+        return [
+            MergedCol.TIMESTAMP,
+            MergedCol.CPU_PERCENTAGE,
+            MergedCol.CPU_PACKAGE_ENHANCED,
+            MergedCol.GPU_POWER,
+            MergedCol.GPU_TEMPERATURE,
+            MergedCol.GPU_HOT_SPOT,
+            MergedCol.RPM,
+        ]
+        
+    @staticmethod
+    def fan_columns():
+        return [
+            RPM_TIMESTAMP,
+            MergedCol.RPM,
+            MergedCol.RELATIVE_TIME,
+            MergedCol.IS_TEST_RUNNING
+        ]
+    @staticmethod
     def rename_map():
         """Returns dict to rename original column names to standard names."""
         return {col.original: col.standard for col in MergedCol}
@@ -64,12 +88,12 @@ class MergedCol(Enum):
         df.drop(columns=to_drop, inplace=True)
         return MergedColumnEnsuredFrame(df)
     
-    def rename_columns(frame: MergedCleanFrame) -> MergedRenamedFrame:
+    def rename_columns(frame: MergedCleanFrame) -> MergedFrame:
         """Rename columns of the DataFrame in-place using the enum's original-to-standard mapping."""
         df=frame.df
         rename_map = MergedCol.rename_map()
         df.rename(columns=rename_map, inplace=True)
-        return MergedRenamedFrame(df)
+        return MergedFrame(df)
 
 
 BASE_TIMESTAMP = MergedCol.TIMESTAMP.original
