@@ -11,6 +11,7 @@ from src.entries.csv_split import *
 from src.graph_plot import *
 from src.entries import *
 from src.pre_processing.base_csv_merge import *
+from src.pre_processing.db_math_regression import *
 
 dataFolder = os.path.join(os.path.dirname(__file__), 'data')
 input_csv_folder = os.path.join(dataFolder, 'input')
@@ -25,56 +26,56 @@ merged_csv_path = os.path.join(tmp_folder, 'merged_data.csv')
 _frames:list[pd.DataFrame] | None = None
 
 
-class Manual:
-    input_csv_path = 'data/base_manual.csv'
-    image_path = 'example/output.png'
-    output_prefix = 'data/base_manual/test'
+# class Manual:
+#     input_csv_path = 'data/base_manual.csv'
+#     image_path = 'example/output.png'
+#     output_prefix = 'data/base_manual/test'
     
-    _frames:list[pd.DataFrame] | None = None
+#     _frames:list[pd.DataFrame] | None = None
     
 
-    @staticmethod
-    def get_frames() -> list[pd.DataFrame]:
-        if Manual._frames is None:
-            Manual._frames = get_cases_from_csv(
-                input_csv=Manual.input_csv_path, 
-                output_prefix=Manual.output_prefix, 
-                intervals=intervals, 
-                save_as_csv=True
-            )
+#     @staticmethod
+#     def get_frames() -> list[pd.DataFrame]:
+#         if Manual._frames is None:
+#             Manual._frames = get_cases_from_csv(
+#                 input_csv=Manual.input_csv_path, 
+#                 output_prefix=Manual.output_prefix, 
+#                 intervals=intervals, 
+#                 save_as_csv=True
+#             )
         
-        return Manual._frames
+#         return Manual._frames
     
-    @staticmethod
-    def get_series_mean(col: Col) -> pd.Series:
-        return mean_of_dataframe_list(Manual.get_frames())
+#     @staticmethod
+#     def get_series_mean(col: Col) -> pd.Series:
+#         return mean_of_dataframe_list(Manual.get_frames())
     
 
-    @staticmethod
-    def plot_cpu_percentage():
-        frames = Manual.get_frames()
-        plot_all_cases(
-            frames=frames, 
-            col=Col.CPU_PERCENTAGE,
-            labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
-            output=Manual.output_prefix,
-            x_label='Segundos',
-            y_label='Cpu %',
-            title='Cpu % por segundo'
-        )
+#     @staticmethod
+#     def plot_cpu_percentage():
+#         frames = Manual.get_frames()
+#         plot_all_cases(
+#             frames=frames, 
+#             col=Col.CPU_PERCENTAGE,
+#             labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
+#             output=Manual.output_prefix,
+#             x_label='Segundos',
+#             y_label='Cpu %',
+#             title='Cpu % por segundo'
+#         )
     
-    @staticmethod
-    def plot_cpu_temperature():
-        frames = Manual.get_frames()
-        plot_all_cases(
-            frames=frames, 
-            col=Col.CPU_TEMPERATURE_ENHANCED,
-            labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
-            output=Manual.output_prefix,
-            x_label='Segundos',
-            y_label='Temperatura CPU',
-            title='Temperatura CPU por segundo'
-        )
+#     @staticmethod
+#     def plot_cpu_temperature():
+#         frames = Manual.get_frames()
+#         plot_all_cases(
+#             frames=frames, 
+#             col=Col.CPU_TEMPERATURE_ENHANCED,
+#             labels=['caso 1', 'caso 2', 'caso 3', 'caso 4', 'caso 5'],
+#             output=Manual.output_prefix,
+#             x_label='Segundos',
+#             y_label='Temperatura CPU',
+#             title='Temperatura CPU por segundo'
+#         )
     
 
 def initialize_folder(folder: str):
@@ -83,7 +84,7 @@ def initialize_folder(folder: str):
     """
     os.makedirs(folder, exist_ok=True)
 
-def initialize_folders():
+def initialize_default_folders():
     """
     Initializes the necessary folders for input, output, and temporary files.
     Creates them if they do not exist.
@@ -136,26 +137,91 @@ def mainMenu() -> tuple[str, str]:
     choice_output_folder = os.path.join(output_csv_folder, list_of_files[choice])
     initialize_folder(choice_output_folder)
 
-    return hardwareInfo_csv_path, java_csv_path
+    return hardwareInfo_csv_path, java_csv_path, list_of_files[choice]
 
+
+from implm.sem_base import *
+from implm.base_automatica import *
+from implm.base_manual import *
+
+
+
+
+# def old():  
+#     SemBase.plot_cpu_percentage()
+#     SemBase.test_plot_with_color()
     
+#     BaseAutomatica.plot_cpu_percentage()
+    
+#     BaseManual.plot_cpu_percentage()
+ 
+def get_intervals_from_df(df: pd.DataFrame) -> list[Interval]:
+    """
+    Extracts the sequential intervals from the 'relativeTime' column of the DataFrame that IsTestRunning is true.
+    Returns a list of Interval objects.
+    """
+    intervals = []
+    
+    start_time = None
+    
+    for i, row in df.iterrows():
+        is_test_running = row['IsTestRunning']
+        relative_time = row['relativeTime']
+        
+
+        # If IsTestRunning is True and we don't have a start time, mark the start
+        if is_test_running and start_time is None:
+            start_time = relative_time
+        
+        # If IsTestRunning is False and we have a start time, mark the end and create interval
+        elif not is_test_running and start_time is not None:
+            # The end time is the previous row's time (last True value)
+            if i > 0:
+                end_time = df.iloc[i]['relativeTime']
+                intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
+                print(f"Interval added: {start_time} - {end_time}")
+            start_time = None
+    # Handle case where the DataFrame ends with IsTestRunning = True
+    if start_time is not None:
+        end_time = df.iloc[-1]['relativeTime']
+        intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
+        print(f"Final interval added: {start_time} - {end_time}")
+    
+    return intervals
+
 if __name__ == '__main__':  
-    initialize_folders()
-    hardwareInfo_csv_path, java_csv_path = mainMenu()
+    initialize_default_folders()
+    create_polinomial_regression_from_csv()
+
+    hardwareInfo_csv_path, java_csv_path, choice_folder_name = mainMenu()
+
+    choice_output_folder = os.path.join(output_csv_folder, choice_folder_name)
+
+    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path)
+
+    intervals = get_intervals_from_df(merged_df)
+
     
-    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
+    predict_with_model(merged_df, output_path=os.path.join(choice_output_folder, 'merged_data_with_predictions.csv'))
 
 
+    # df_test = predict_with_csv(
+    #     csv_path=os.path.join(dataFolder, 'pc_fan_db_tests.csv'),
+    # )
+
+    # print_comparison_table(
+    #     df=df_test,
+    #     title="Teste de Ventoinha PC",
+    #     metrics=calculate_metrics(df_test)
+    # )
+
     
-    _frames = get_cases_from_csv(input_csv = merged_csv_path, output_prefix = choice_output_folder, intervals=intervals, save_as_csv=True)
+    
+    # _frames = get_cases_from_csv(input_csv = merged_csv_path, output_prefix = choice_output_folder, intervals=intervals, save_as_csv=True)
                                  
 
-    # remove_tmp_files()
-    print(f"Joined data has {len(result)} rows")
-    print(result)
+    # # remove_tmp_files()
+    # print(f"Joined data has {len(result)} rows")
+    # print(result)
     # Manual.plot_cpu_percentage()
 
-    
-    
-    
-    

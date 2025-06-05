@@ -1,6 +1,13 @@
-Simple program to add treat benchmark results and generate graphs in organized manner
+# Simple program to add treat benchmark results and generate graphs in organized manner
 
-How to execute:
 
-Run python file.py with specified arguments for input table and output folder
-Tables should always be on data/
+
+## How to execute:
+
+python -m main
+
+To run the main of any other specific script follow its folder structure:
+
+python -m implm.sem_base
+
+

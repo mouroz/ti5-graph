@@ -3,8 +3,9 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+from pathlib import Path
 from src.columns import *
-from src.graph_plot import *
+from src.graph.simple_plot import *
 from src.entries.reader import *
 from src.entries.interval import *
 
@@ -49,12 +50,14 @@ def get_cases_from_csv(input_csv: str, output_prefix: str, intervals: list[Inter
         
         if (save_as_csv):
             output_path = f"{output_prefix}{i+1}.csv"
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)  # Ensure folder exists
             chunk.to_csv(output_path, index=False)
 
         updated.append(chunk)
 
     if (save_as_csv):
         output_path = f"{output_prefix}_original.csv"
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)  # Ensure folder exists
         df.to_csv(output_path, index=False)
     return updated
 

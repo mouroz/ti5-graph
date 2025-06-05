@@ -2,8 +2,8 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-# from columns import *
 from src.columns import *
+
 import chardet
 
 def custom_time_parser(time_str):
@@ -65,5 +65,13 @@ def mean_of_dataframe_list(df_list: list[pd.DataFrame], col: Col) -> pd.Series:
     
     return mean_of_series_list(series)
     
-    
+
+def get_series_from_frames(frames: list[pd.DataFrame], col: Col):
+    y_series:list[pd.Series] = []
+    for frame in frames:
+        y_series.append(frame[col.standard])
+    return y_series
+
+
+            
     
