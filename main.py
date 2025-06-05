@@ -6,9 +6,9 @@ from datetime import datetime
 import sys
 import os
 
-from src.reader.merged.columns import *
-from src.interval.create_entries import *
-from src.graph.simple_plot import *
+from src.implm.merged.columns import *
+from src.interval.split_frame import *
+from src.graph.line_plot import *
 from src.interval import *
 # from src.pre_processing.db_math_regression import *
 
@@ -90,15 +90,20 @@ def mainMenu() -> tuple[str, str]:
 
 
 if __name__ == '__main__':  
-    print("Hello world")
-    # initialize_folders()
-    # hardwareInfo_csv_path, java_csv_path = mainMenu()
-    
-    #csv_prepare("data/input/base_manual/hw_info.csv", "data/input/base_manual/java.csv", "data/output/base_manual/merged_data.csv")
-    
-    # merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path, os.path.join(tmp_folder, 'merged_data.csv'))
+    initialize_default_folders()
+    create_polinomial_regression_from_csv()
 
-    # intervals = get_intervals_from_df(merged_df)
+    hardwareInfo_csv_path, java_csv_path, choice_folder_name = mainMenu()
+
+    choice_output_folder = os.path.join(output_csv_folder, choice_folder_name)
+
+    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path)
+
+    intervals = get_intervals_from_df(merged_df)
+
+    
+    predict_with_model(merged_df, output_path=os.path.join(choice_output_folder, 'merged_data_with_predictions.csv'))
+
     
     
 

@@ -2,7 +2,6 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-from src.reader.merged.columns import *
 
 
 def time_str_to_seconds(s: str) -> int:

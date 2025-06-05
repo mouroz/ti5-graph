@@ -4,8 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
-from src.reader.merged.columns import *
-from src.graph.simple_plot import *
 from src.interval.interval import *
 
 

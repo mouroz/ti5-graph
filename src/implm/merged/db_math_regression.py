@@ -9,23 +9,28 @@ from typing import Tuple, List, Dict
 modelo_poly: LinearRegression | None = None
 transformador_poly: PolynomialFeatures | None = None
 
-def load_and_clean_csv(csv_path: str) -> pd.DataFrame:
+def load_and_clean_csv(csv_path: str, is_train_csv: bool = False) -> pd.DataFrame:
     """Load and clean CSV data."""
     df = pd.read_csv(csv_path, encoding='ISO-8859-1', sep=',')
     
     # Convert 'Nivel de Ruido' to string first, then replace comma with dot, then convert to float
     if 'Nivel de Ruido' in df.columns:
         df['Nivel de Ruido'] = df['Nivel de Ruido'].astype(str).str.replace(',', '.').astype(float)
+    else:
+        if(is_train_csv):
+            raise ValueError("Coluna 'Nivel de Ruido' não encontrada no CSV de treino.")
 
     if 'Velocidade Fan Base' in df.columns:
         df['Velocidade Fan Base'] = pd.to_numeric(df['Velocidade Fan Base'], errors='coerce')
     elif 'RPM' in df.columns:
         df['Velocidade Fan Base'] = pd.to_numeric(df['RPM'], errors='coerce')
-    
+    else:
+        raise ValueError("Coluna 'Velocidade Fan Base' ou 'RPM' não encontrada no CSV.")
+
     if 'Velocidade Fan PC' in df.columns:
         df['Velocidade Fan PC'] = pd.to_numeric(df['Velocidade Fan PC'], errors='coerce')
-    elif 'RPM' in df.columns and :
-        
+    else:
+        raise ValueError("Coluna 'Velocidade Fan PC' não encontrada no CSV.")
     
     return df
 
@@ -69,7 +74,7 @@ def train_polynomial_regression(df: pd.DataFrame, grau: int = 2) -> Tuple[Linear
 
     return model, poly, df
 
-def predict_with_model(df: pd.DataFrame) -> pd.DataFrame:
+def predict_with_model(df: pd.DataFrame, output_path: str = None) -> pd.DataFrame:
     """Predict noise levels using the trained model."""
     global modelo_poly, transformador_poly
     
@@ -84,11 +89,18 @@ def predict_with_model(df: pd.DataFrame) -> pd.DataFrame:
     # Prever ruido
     df['RuidoEstimadoPoly'] = np.nan
     df.loc[mask, 'RuidoEstimadoPoly'] = modelo_poly.predict(X_poly)
+
+    # Save predictions to CSV if output path is provided
+    if output_path:
+        df.to_csv(output_path, index=False)
+
     return df
 
-def predict_with_csv(csv_path: str) -> pd.DataFrame:
+def predict_with_csv(csv_path: str, output_path: str = None) -> pd.DataFrame:
     df = load_and_clean_csv(csv_path)
     df = predict_with_model(df)
+    if output_path:
+        df.to_csv(output_path, index=False)
     return df
 
 def calculate_metrics(df: pd.DataFrame, real_col: str = 'Nivel de Ruido', 
@@ -159,12 +171,12 @@ def print_comparison_table(df: pd.DataFrame, title: str, metrics: Dict[str, floa
     print(f"Diferença média: {metrics['mean_diff']:.3f}")
     print(f"Diferença máxima: {metrics['max_diff']:.3f}")
 
-def create_polinomial_regression_from_csv(grau: int = 2, csv_path: str = "data/fans_db_tests.csv", log_in_terminal: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def create_polinomial_regression_from_csv(grau: int = 3, csv_path: str = "data/fans_db_tests.csv", log_in_terminal: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Main function to create polynomial regression model from CSV data.
     
     Parameters:
-    - grau: Degree of polynomial (default is 2)
+    - grau: Degree of polynomial (default is 3)
     - csv_path: Path to CSV file
     
     Returns:
@@ -173,7 +185,7 @@ def create_polinomial_regression_from_csv(grau: int = 2, csv_path: str = "data/f
     global modelo_poly, transformador_poly
     
     # Load and clean data
-    df = load_and_clean_csv(csv_path)
+    df = load_and_clean_csv(csv_path, is_train_csv=True)
     
     # Split into train/test sets
     df_treino, df_teste = split_train_test(df)
