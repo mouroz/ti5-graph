@@ -16,8 +16,7 @@ def load_and_clean_csv(csv_path: str, is_train_csv: bool = False) -> pd.DataFram
     # Convert 'Nivel de Ruido' to string first, then replace comma with dot, then convert to float
     if 'Nivel de Ruido' in df.columns:
         df['Nivel de Ruido'] = df['Nivel de Ruido'].astype(str).str.replace(',', '.').astype(float)
-    else:
-        if(is_train_csv):
+    elif(is_train_csv):
             raise ValueError("Coluna 'Nivel de Ruido' não encontrada no CSV de treino.")
 
     if 'Velocidade Fan Base' in df.columns:

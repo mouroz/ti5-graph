@@ -6,26 +6,32 @@ import pandas as pd
 
 # Columns for merged and prepared for graph
 class MergedCol(Enum):
-    TIMESTAMP = ('Time', 'Time')
+    # Java columns
+    TIMESTAMP = ('Timestamp', 'Timestamp')
     RELATIVE_TIME = ('relativeTime', 'Relative Time')
+    EXTERNAL_FAN_RPM = ('RPM', 'Velocidade Fan Base')
+    IS_TEST_RUNNING = ('IsTestRunning', 'Is Test Running')
     
-    # CPU Data
+    
+    # HW columns
     CPU_PERCENTAGE = ('Total CPU Usage [%]', 'Total CPU %')
-    # CPU_TEMPERATURE_ENHANCED = ('CPU Package [�C]_1', 'Cpu Temperature')
+    CPU_TEMPERATURE_ENHANCED = ('CPU Package [�C]_1', 'Cpu Temperature')
     CPU_PACKAGE_ENHANCED = ('CPU Package Power [W]', 'Cpu Package')
+    CPU_RPM =  ('CPU [RPM]', 'CPU [RPM]')
 
-    # GPU Fata
-    
     GPU_POWER = ('GPU Power [W]', 'GPU Power W')
     GPU_TEMPERATURE = ('GPU Temperature [�C]', 'GPU Temperature')
     GPU_HOT_SPOT = ('GPU Hot Spot Temperature [�C]', 'GPU Hot Spot')
+    GPU_RPM = ('GPU [RPM]', 'GPU [RPM]')
     
-    RPM = ('RPM', 'RPM')
-    IS_TEST_RUNNING = ('IsTestRunning', 'Is Test Running')
-    # Disk Data
+    SSD_Temperature = ('Drive Temperature [�C]_2', 'SSD Temperature')
+    HDD_Temperature = ('Drive Temperature [�C]_1', 'HDD Temperature')
 
-    # SSD_Temperature = ('Drive Temperature [�C]_2', 'SSD Temperature')
-    # HDD_Temperature = ('Drive Temperature [�C]_1', 'HDD Temperature')
+
+    # Auxiliar columns
+    AVG_RPM = (None, 'Velocidade Fan PC')
+    ABS_RPM_DIFFERENCE = (None, 'Diferença fan (abs)')
+    RUIDO_ESTIMADO_POLY = (None, 'RuidoEstimadoPoly')
 
     @property
     def original(self):
@@ -39,28 +45,39 @@ class MergedCol(Enum):
     def hardware_columns():
         """Returns a list of all hardware-related columns."""
         return [
-            MergedCol.TIMESTAMP,
-            MergedCol.CPU_PERCENTAGE,
-            MergedCol.CPU_PACKAGE_ENHANCED,
-            MergedCol.GPU_POWER,
-            MergedCol.GPU_TEMPERATURE,
-            MergedCol.GPU_HOT_SPOT,
-            MergedCol.RPM,
+            JOIN_BASE_TIMESTAMP,
+            MergedCol.CPU_PERCENTAGE.original,
+            MergedCol.CPU_PACKAGE_ENHANCED.original,
+            MergedCol.CPU_RPM.original,
+            MergedCol.GPU_POWER.original,
+            MergedCol.GPU_TEMPERATURE.original,
+            MergedCol.GPU_HOT_SPOT.original,
+            MergedCol.GPU_RPM.original,
         ]
         
     @staticmethod
     def fan_columns():
         return [
             JOIN_RPM_TIMESTAMP,
-            MergedCol.RPM,
-            MergedCol.RELATIVE_TIME,
-            MergedCol.IS_TEST_RUNNING
+            MergedCol.EXTERNAL_FAN_RPM.original,
+            MergedCol.RELATIVE_TIME.original,
+            MergedCol.IS_TEST_RUNNING.original
         ]
     
-    @staticmethod
+    def auxiliar_columns():
+        """Returns a list of all auxiliary columns."""
+        return [
+            MergedCol.AVG_RPM.original,
+            MergedCol.ABS_RPM_DIFFERENCE.original
+        ]
+        
     def rename_map():
-        """Returns dict to rename original column names to standard names."""
-        return {col.original: col.standard for col in MergedCol}
+        """Returns dict to rename original column names to standard names, excluding undefined (None) ones."""
+        return {
+            col.original: col.standard
+            for col in MergedCol
+            if col.original is not None
+        }
     
     @staticmethod
     def rename_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -68,12 +85,12 @@ class MergedCol(Enum):
         return df.rename(columns=MergedCol.rename_map())
 
     @staticmethod
-    def original_names():
+    def original_names() -> list[str | None]:
         """Returns a list of all original (raw) column names."""
         return [col.original for col in MergedCol]
 
     @staticmethod
-    def standard_names():
+    def standard_names() -> list[str]:
         """Returns a list of all standardized column names."""
         return [col.standard for col in MergedCol]
     
@@ -84,8 +101,10 @@ class MergedCol(Enum):
             raise ValueError(f"Missing required columns: {missing}")
 
 
-JOIN_BASE_TIMESTAMP = MergedCol.TIMESTAMP.original
-JOIN_RPM_TIMESTAMP = 'Timestamp'
+
+JOIN_BASE_TIMESTAMP = 'Time'
+JOIN_RPM_TIMESTAMP = MergedCol.TIMESTAMP.original
+        
         
 # MIGHT CONSIDER LATER
 # def normalize_string(name):
