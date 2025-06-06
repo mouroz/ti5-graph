@@ -6,7 +6,10 @@ from datetime import datetime
 import sys
 import os
 
-from src.interval import Interval
+from src.interval.split_frame import split_df_by_intervals_as_relative_time
+from src.interval.interval import Interval
+from src.implm.merged.db_math_regression import predict_with_model
+
 
 dataFolder = os.path.join(os.path.dirname(__file__), 'data')
 input_csv_folder = os.path.join(dataFolder, 'input')
@@ -211,9 +214,57 @@ def get_merged_frame(HW_info_csv:str, java_csv_path:str, output_final_file:str =
     df = merge_csv_files(HW_info_csv, java_csv_path)
     df = pc_rpm_columns_merge(df)
     df = fix_dataframe_inconsistencies(df)
+    df = predict_with_model(df)
     
     if output_final_file:
         df.to_csv(output_final_file, index=False)
         print(f"Merged DataFrame saved to {output_final_file}")
     
     return df
+
+def get_splitted_frames(df: pd.DataFrame) -> list[pd.DataFrame]:
+    """
+    Split the DataFrame into smaller DataFrames based on intervals.
+    Returns a list of DataFrames.
+    """
+ 
+    intervals = get_intervals_from_df(df)
+    frames = split_df_by_intervals_as_relative_time(df, intervals, time_col='relativeTime')
+    print(frames)
+    # frames = []
+    # for interval in intervals:
+    #     start_time = interval.start
+    #     end_time = interval.end
+        
+    #     print(df['relativeTime'].dtype)
+        
+        # # Filter the DataFrame for the current interval
+        # mask = (df['relativeTime'] >= start_time) & (df['relativeTime'] <= end_time)
+        # filtered_df = df[mask].copy()
+        
+        # if not filtered_df.empty:
+        #     filtered_df.reset_index(drop=True, inplace=True)
+        #     _frames.append(filtered_df)
+        #     print(f"Frame created for interval: {start_time} - {end_time}")
+    
+    return frames
+
+
+def get_splitted_frames_from_csv(Base_csv:str, java_csv_path:str = None, output_path:str = None) -> list[pd.DataFrame]:
+    """
+    Get the splitted DataFrames from base and RPM CSV files.
+    
+    Parameters:
+    - Base_csv: Path to the base CSV file.
+    - java_csv_path: Path to the RPM CSV file.
+    
+    Returns:
+    - List of DataFrames split by intervals.
+    """
+    if java_csv_path is not None:
+        df = get_merged_frame(Base_csv, java_csv_path, output_final_file=os.path.join(output_path, 'merged_data.csv'))
+    else:
+        df = pd.read_csv(Base_csv)
+        
+    
+    return get_splitted_frames(df)

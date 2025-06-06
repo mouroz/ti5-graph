@@ -6,10 +6,12 @@ from datetime import datetime
 import sys
 import os
 
-from src.implm.merged.columns import *
-from src.interval.split_frame import *
-from src.graph.line_plot import *
-from src.interval import *
+# from src.implm.merged.columns import *
+# from src.interval.split_frame import *
+# from src.graph.line_plot import *
+# from src.interval import *
+from src.implm.merged.db_math_regression import *
+from src.implm.merged.pipeline import *
 # from src.pre_processing.db_math_regression import *
 
 dataFolder = os.path.join(os.path.dirname(__file__), 'data')
@@ -31,7 +33,7 @@ def initialize_folder(folder: str):
     """
     os.makedirs(folder, exist_ok=True)
 
-def initialize_folders():
+def initialize_default_folders():
     """
     Initializes the necessary folders for input, output, and temporary files.
     Creates them if they do not exist.
@@ -84,7 +86,7 @@ def mainMenu() -> tuple[str, str]:
     choice_output_folder = os.path.join(output_csv_folder, list_of_files[choice])
     initialize_folder(choice_output_folder)
 
-    return hardwareInfo_csv_path, java_csv_path
+    return hardwareInfo_csv_path, java_csv_path, choice_output_folder
 
 
 
@@ -93,16 +95,28 @@ if __name__ == '__main__':
     initialize_default_folders()
     create_polinomial_regression_from_csv()
 
-    hardwareInfo_csv_path, java_csv_path, choice_folder_name = mainMenu()
+    hardwareInfo_csv_path, java_csv_path, choice_output_folder = mainMenu()
 
-    choice_output_folder = os.path.join(output_csv_folder, choice_folder_name)
+    print(f"{output_csv_folder}")
 
-    merged_df = join_csv_files(hardwareInfo_csv_path, java_csv_path)
+    initialize_folder(choice_output_folder)
+    print(f"choise_output_folder: {choice_output_folder}")
 
-    intervals = get_intervals_from_df(merged_df)
-
+    # merged_df = get_merged_frame(
+    #     HW_info_csv=hardwareInfo_csv_path, 
+    #     java_csv_path=java_csv_path, 
+    #     output_final_file=os.path.join(choice_output_folder, 'merged_data.csv')
+    # )
     
-    predict_with_model(merged_df, output_path=os.path.join(choice_output_folder, 'merged_data_with_predictions.csv'))
+    df_list = get_splitted_frames_from_csv(
+        Base_csv=hardwareInfo_csv_path,
+        java_csv_path=java_csv_path,
+        # output_path=merged_csv_path,
+        output_path=choice_output_folder
+    )
+    
+    print(f"Data merged and saved to {choice_output_folder}")
+    
 
     
     

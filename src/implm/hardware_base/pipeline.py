@@ -9,7 +9,7 @@ import os
 
 
 from src.implm.hardware_base.columns import BaseCol
-from src.interval.split_frame import split_df_by_intervals
+from src.interval.split_frame import split_df_by_intervals_as_index
 from src.interval.entries_frame import EntriesFrame
 from src.interval.interval import Interval
 
@@ -49,7 +49,7 @@ def read_csv(base_csv_path:str) -> pd.DataFrame:
 
 def get_entries_frame(base_csv_path:str, intervals:list[Interval], output_prefix:str|None) -> EntriesFrame:
     df:pd.DataFrame = read_csv(base_csv_path)
-    frames:list[pd.DataFrame] = split_df_by_intervals(df, intervals)
+    frames:list[pd.DataFrame] = split_df_by_intervals_as_index(df, intervals)
     
     if (output_prefix is not None):
         for i, chunk in enumerate(frames):

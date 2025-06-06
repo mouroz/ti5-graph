@@ -39,6 +39,7 @@ class Interval:
         start_str, end_str = parts[0].strip(), parts[1].strip()
         return Interval.from_time_strings(start_str, end_str)
 
-
-def interval_matching_length(intervals: list[Interval]) -> bool:
-    return all(i.len() == intervals[0].len() for i in intervals)
+    @staticmethod
+    def time_str_to_seconds(time_str: str) -> int:
+        minutes, seconds = map(int, time_str.split(":"))
+        return minutes * 60 + seconds

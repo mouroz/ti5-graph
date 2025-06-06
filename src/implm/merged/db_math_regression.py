@@ -88,7 +88,7 @@ def predict_with_model(df: pd.DataFrame, output_path: str = None) -> pd.DataFram
     
     # Prever ruido
     df['RuidoEstimadoPoly'] = np.nan
-    df.loc[mask, 'RuidoEstimadoPoly'] = modelo_poly.predict(X_poly)
+    df.loc[mask, 'RuidoEstimadoPoly'] = np.round(modelo_poly.predict(X_poly), 2)
 
     # Save predictions to CSV if output path is provided
     if output_path:

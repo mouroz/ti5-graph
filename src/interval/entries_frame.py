@@ -1,6 +1,6 @@
 import pandas as pd
 from src.interval.interval import Interval
-from src.interval.split_frame import split_df_by_intervals
+from src.interval.split_frame import split_df_by_intervals_as_index
 
 class EntriesFrame:
     """
@@ -20,7 +20,7 @@ class EntriesFrame:
     
     @staticmethod
     def from_intervals(df: pd.DataFrame, intervals: list[Interval]) -> 'EntriesFrame':
-        split_df_by_intervals(df, intervals)
+        split_df_by_intervals_as_index(df, intervals)
         
 
     def get_series(self, column: str) -> list[pd.Series]:
