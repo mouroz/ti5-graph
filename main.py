@@ -161,32 +161,35 @@ def get_intervals_from_df(df: pd.DataFrame) -> list[Interval]:
     Returns a list of Interval objects.
     """
     intervals = []
-    
     start_time = None
-    
+
+    def to_seconds(t):
+        mins, secs = map(int, t.split(':'))
+        return mins * 60 + secs
+
     for i, row in df.iterrows():
         is_test_running = row['IsTestRunning']
         relative_time = row['relativeTime']
-        
 
         # If IsTestRunning is True and we don't have a start time, mark the start
         if is_test_running and start_time is None:
             start_time = relative_time
-        
+
         # If IsTestRunning is False and we have a start time, mark the end and create interval
         elif not is_test_running and start_time is not None:
-            # The end time is the previous row's time (last True value)
             if i > 0:
                 end_time = df.iloc[i]['relativeTime']
                 intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
-                print(f"Interval added: {start_time} - {end_time}")
+                time_diff = to_seconds(end_time) - to_seconds(start_time)
+                print(f"Interval added: {start_time} - {end_time} Time difference: {time_diff} seconds")
             start_time = None
     # Handle case where the DataFrame ends with IsTestRunning = True
     if start_time is not None:
         end_time = df.iloc[-1]['relativeTime']
         intervals.append(Interval.from_range_string(f"{start_time} - {end_time}"))
-        print(f"Final interval added: {start_time} - {end_time}")
-    
+        time_diff = to_seconds(end_time) - to_seconds(start_time)
+        print(f"Final interval added: {start_time} - {end_time} Time difference: {time_diff} seconds")
+
     return intervals
 
 if __name__ == '__main__':  

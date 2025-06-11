@@ -15,14 +15,19 @@ def join_csv_files(base_csv_path:str, rpm_csv_path:str, output_path=None) -> pd.
     # Read both CSV files
     base_df = pd.read_csv(base_csv_path)
     rpm_df = pd.read_csv(rpm_csv_path)
-
-    # Remove last line of base_df
-    if not base_df.empty and base_df.iloc[-1].isnull().all():
-        base_df = base_df[:-1]
     
     # Convert 'Time' to string first, then create join key by removing milliseconds
+    # Função para normalizar o tempo para HH:MM:SS
+    def normalize_time_str(t):
+        parts = t.split(':')
+        # Garante que temos 3 partes (HH, MM, SS)
+        parts = [p.zfill(2) for p in parts]
+        while len(parts) < 3:
+            parts.insert(0, '00')
+        return ':'.join(parts)
+
     base_df['join_time'] = base_df['Time'].astype(str).str.split('.').str[0]
-    
+    base_df['join_time'] = base_df['join_time'].apply(normalize_time_str)
     # Create corresponding join key from rpm_base_manual.csv Timestamp column
     rpm_df['join_time'] = rpm_df['Timestamp']
     
