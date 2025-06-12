@@ -28,13 +28,21 @@ def merge_csv_files(base_csv_path:str, java_csv_path:str) -> pd.DataFrame:
     base_df = pd.read_csv(base_csv_path)
     rpm_df = pd.read_csv(java_csv_path)
 
-    # Remove last line of base_df
-    if not base_df.empty and base_df.iloc[-1].isnull().all():
-        base_df = base_df[:-1]
+    # Função para normalizar o tempo para HH:MM:SS
+    def normalize_time_str(t):
+        parts = t.split(':')
+        # Garante que temos 3 partes (HH, MM, SS)
+        parts = [p.zfill(2) for p in parts]
+        while len(parts) < 3:
+            parts.insert(0, '00')
+        return ':'.join(parts)
     
     # Convert 'Time' to string first, then create join key by removing milliseconds
     base_df['join_time'] = base_df['Time'].astype(str).str.split('.').str[0]
     
+    # Normalize the time strings to HH:MM:SS format
+    base_df['join_time'] = base_df['join_time'].apply(normalize_time_str)
+
     # Create corresponding join key from rpm_base_manual.csv Timestamp column
     rpm_df['join_time'] = rpm_df['Timestamp']
     
@@ -76,6 +84,9 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     
     # Sort by 'Timestamp'
     dataframe = dataframe.sort_values(by='Timestamp')
+
+    # Remove duplicates based on 'Timestamp'
+    dataframe = dataframe.drop_duplicates(subset='Timestamp')
     
     # Create a list to hold the original and interpolated rows
     all_rows = []
@@ -122,9 +133,6 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     
     # Create a new DataFrame from all rows
     result_df = pd.DataFrame(all_rows)
-
-    # Remove duplicates based on 'Timestamp'
-    result_df = result_df.drop_duplicates(subset='Timestamp')
     
     # Sort again to ensure proper order
     result_df = result_df.sort_values(by='Timestamp')
@@ -137,31 +145,6 @@ def fix_dataframe_inconsistencies(dataframe: pd.DataFrame) -> pd.DataFrame:
     # result_df.drop(columns=['Unnamed: 294'], inplace=True, errors='ignore')
 
     result_df.rename(columns={'RPM': 'Velocidade Fan Base'}, inplace=True)
-    
-
-    # # ensure 'relativeTime' is correctly crescent
-    # for i in range(0, len(result_df)-1, 1):
-    #     new_time = i
-    #     new_mins = new_time // 60
-    #     new_secs = new_time % 60
-    #     result_df.at[i, 'relativeTime'] = f"{new_mins:02d}:{new_secs:02d}"
-
-
-    # Use a public approach to deduplicate column names
-    # def deduplicate_columns(cols):
-    #     seen = {}
-    #     new_cols = []
-    #     for col in cols:
-    #         if col not in new_cols:
-    #             seen[col] = 0
-    #             new_cols.append(col)
-    #             # print(f"Column name {col} is unique.")
-    #         else:
-    #             seen[col] += 1
-    #             new_cols.append(f"{col}_{seen[col]}")
-    #             print(f"Duplicate column name found: {col}. Renaming to {new_cols[-1]}")
-    #     return new_cols
-    # result_df.columns = deduplicate_columns(result_df.columns)
 
     return result_df
 
@@ -231,21 +214,6 @@ def get_splitted_frames(df: pd.DataFrame) -> list[pd.DataFrame]:
     intervals = get_intervals_from_df(df)
     frames = split_df_by_intervals_as_relative_time(df, intervals, time_col='relativeTime')
     print(frames)
-    # frames = []
-    # for interval in intervals:
-    #     start_time = interval.start
-    #     end_time = interval.end
-        
-    #     print(df['relativeTime'].dtype)
-        
-        # # Filter the DataFrame for the current interval
-        # mask = (df['relativeTime'] >= start_time) & (df['relativeTime'] <= end_time)
-        # filtered_df = df[mask].copy()
-        
-        # if not filtered_df.empty:
-        #     filtered_df.reset_index(drop=True, inplace=True)
-        #     _frames.append(filtered_df)
-        #     print(f"Frame created for interval: {start_time} - {end_time}")
     
     return frames
 

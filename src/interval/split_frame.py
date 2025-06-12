@@ -61,7 +61,8 @@ def split_df_by_intervals_as_relative_time(df: pd.DataFrame, intervals: list[Int
         if start_idx > end_idx:
             raise ValueError(f"No rows found in interval {interval.start}-{interval.end} seconds.")
 
-        print(f"Interval {interval.start}s to {interval.end}s → rows {start_idx} to {end_idx}")
+        time_diff = interval.end - interval.start
+        print(f"Interval {interval.start}s to {interval.end}s ({time_diff}s difference) → rows {start_idx} to {end_idx}")
         chunks.append(df.iloc[start_idx:end_idx + 1].copy())
 
     return chunks
