@@ -15,13 +15,65 @@ class EntriesFrame:
 
         :param data: A list of pandas DataFrames.
         """
+        
+        if not data:
+            raise ValueError("EntriesFrame cannot be initialized with an empty list of DataFrames.")
+
+        row_counts = [len(df) for df in data]
+        assert all(count == row_counts[0] for count in row_counts), \
+            f"Inconsistent row counts: {row_counts}"
+            
         self.frames = data
-    
-    
+            
+            
     @staticmethod
     def from_intervals(df: pd.DataFrame, intervals: list[Interval]) -> 'EntriesFrame':
         split_df_by_intervals_as_index(df, intervals)
+    
+    
+    @staticmethod 
+    def frame_get_series(frames: list[pd.DataFrame], column: str) -> list[pd.Series]:
+        """
+        Extract a list of Series for the specified column from each DataFrame in the list.
+
+        :param frames: List of pandas DataFrames.
+        :param column: Name of the column to extract.
+        :return: List of pandas Series for the specified column.
+        """
+        return [df[column] for df in frames if column in df]
+    
+    
+    @staticmethod
+    def series_get_mean_series(series: list[pd.Series]) -> pd.Series:
+        """
+        Compute the element-wise mean of a list of Series.
+
+        :param list: List of pandas Series.
+        :return: A Series representing the mean at each index.
+        """
+        if not series:
+            return pd.Series(dtype=float)
+        df = pd.concat(series, axis=1)
+        return df.mean(axis=1)
+    
+    @staticmethod
+    def frame_get_mean_series(frames: list[pd.DataFrame], col:str) -> pd.Series:
+        """
+        Compute the element-wise mean of a list of Series.
+
+        :param list: List of pandas Series.
+        :return: A Series representing the mean at each index.
+        """
+        if not frames:
+            return pd.Series(dtype=float)
         
+        series = EntriesFrame.frame_get_series(frames, col)
+        df = pd.concat(series, axis=1)
+        return df.mean(axis=1)
+    
+    
+    
+    
 
     def get_series(self, column: str) -> list[pd.Series]:
         """
@@ -56,23 +108,11 @@ class EntriesFrame:
         combined = pd.concat(series, ignore_index=True)
         return combined.mean()
 
+
+    
     
     def get_mean_series(self, column: str) -> pd.Series:
-        """
-        Return the element-wise mean of a specific column across all frames.
-
-        Assumes:
-            - Each DataFrame has the specified column.
-            - All DataFrames have the same number of rows (aligned by time).
-        
-        :param column: Name of the column to compute element-wise mean on.
-        :return: A Series representing the mean at each time point.
-        """
-        series_list = self.get_series(column)
-        if not series_list:
-            return pd.Series(dtype=float)
-        df = pd.concat(series_list, axis=1)
-        return df.mean(axis=1)
+        return EntriesFrame.series_get_mean_series(self.get_series(column))
 
 
     def get_total_row_length(self) -> int:

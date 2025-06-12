@@ -213,7 +213,7 @@ def get_splitted_frames(df: pd.DataFrame) -> list[pd.DataFrame]:
  
     intervals = get_intervals_from_df(df)
     frames = split_df_by_intervals_as_relative_time(df, intervals, time_col='relativeTime')
-    print(frames)
+    #print(frames)
     
     return frames
 

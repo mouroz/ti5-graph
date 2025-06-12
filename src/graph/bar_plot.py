@@ -6,7 +6,9 @@ def plot_avg_bars(
     labels: list[str] | None,
     output: str,
     y_label: str,
-    title: str
+    title: str,
+    y_min: float = 0.0,
+    y_max: float = 100.0
 ):
     """
     Plots the average of each series in y_series_list as a bar graph.
@@ -22,5 +24,6 @@ def plot_avg_bars(
     plt.title(title)
     plt.grid(axis='y')
     plt.tight_layout()
+    plt.ylim(bottom=y_min, top=y_max) 
     print(output)
     plt.savefig(output)
